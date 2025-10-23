@@ -1,2 +1,2 @@
-# Trabajo-final-los-el-ctricos
+# Trabajo-final-los-electricos
 Trabajo final del tercer cuatrimestre 
