@@ -1,75 +1,224 @@
 /* 1) Reset básico */
 * {
-    box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    background-color: black;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: black;
+	font-family: "Baloo Bhai 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Fuentes */
+@font-face {
+	font-family: "Baloo Bhai 2";
+	src: url("/fonts/BalooBhai2-Regular.ttf") format("truetype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Baloo Bhai 2";
+	src: url("/fonts/BalooBhai2-Bold.ttf") format("truetype");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
 }
 
 /* 2) Contenedor principal pantalla completa sin overflow */
 .container {
-    height: 100vh;        /* ocupa exactamente el alto de la pantalla */
-    width: 100vw;
-    display: flex;
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	font-family: "Baloo Bhai 2", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* 3) Columna izquierda (logo) */
 .izquierda {
-    flex: 1;              /* ocupa la mitad (junto con la derecha) */
-    display: flex;        /* ahora sí se pueden usar align/justify */
-    align-items: center;
-    justify-content: center;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background-color: #000;
+	background-image: radial-gradient(circle at center,
+			#202020 0%,
+			#050505 60%,
+			#000000 100%);
 }
 
 .logo {
-    max-width: 40%;
-    height: auto;
+	max-width: 40%;
+	height: auto;
 }
 
 /* 4) Columna derecha (fondo azul) */
 .derecha {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgb(75, 133, 174);
-    padding: 40px;        /* margen interno razonable */
-    border-radius: 20px 0 0 20px; /* opcional: solo borde interno izquierdo */
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background-color: rgb(75, 133, 174);
+	background-image: radial-gradient(circle at center,
+			#5fa0d0 0%,
+			#4b85ae 50%,
+			#325a80 100%);
+
+	padding: 40px;
+	border-radius: 20px;
+	margin: 10px;
 }
 
-/* 5) Caja del login (para que no se estire demasiado) */
+/* 5) Caja del login */
 .login {
-    width: 100%;
-    max-width: 380px;
+	width: 100%;
+	max-width: 380px;
+	display: flex;
+	flex-direction: column;
 }
 
 /* 6) Textos y campos */
 .usuario {
-    display: block;
-    text-align: center;
-    color: rgb(249, 250, 250);
-    font-size: 32px;
-    margin-bottom: 20px;
+	display: block;
+	text-align: left;
+	color: rgb(249, 250, 250);
+	font-size: 32px;
+	margin-bottom: 4px;
 }
 
 .input {
-    width: 100%;
-    padding: 18px 20px;
-    background-color: black;
-    border-radius: 10px;
-    font-size: 18px;
-    color: white;
-    border: none;
-    margin-bottom: 20px;
+	width: 100%;
+	padding: 18px 20px;
+	background-color: black;
+	border-radius: 10px;
+	font-size: 18px;
+	color: white;
+	border: none;
+	margin-bottom: 16px;
 }
 
 .recordarme {
-    font-size: 18px;
-    margin: 10px 0 0 0;
-    text-align: left;
-    color: white;
+	font-size: 20px;
+	margin-top: 8px;
+	color: white;
+}
+
+/* 7) Botón y texto inferior */
+.acciones {
+	margin-top: 38px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.boton {
+	width: 100%;
+	padding: 12px 24px;
+	border: none;
+	border-radius: 10px;
+	background-color: #176414;
+	color: rgba(255, 255, 255, 0.911);
+	font-size: 24px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+}
+
+.boton:hover {
+	background-color: #1ac014c7;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+	transform: translateY(-1px);
+}
+
+.recordarme, .registrarse {
+	margin-top: 20px;
+	font-size: 18px;
+	color: white;
+	cursor: pointer;
+}
+
+/* === VISTA MOBILE / PANTALLAS ANGOSTAS === */
+@media (max-width: 768px) {
+	.container {
+		position: relative;
+		height: 100vh;
+		width: 100vw;
+		display: flex;
+	}
+
+	/* Contenedor del logo arriba */
+	.izquierda {
+		position: absolute;
+		top: 32px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 100%;
+		height: auto;
+		background: transparent;
+		/* sin fondo negro */
+		justify-content: center;
+		align-items: center;
+		display: flex;
+		pointer-events: none;
+		/* para que no bloquee clics */
+	}
+
+	/* Disco con degradado detrás del logo */
+	.izquierda::before {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 180px;
+		/* tamaño del círculo */
+		height: 180px;
+		border-radius: 50%;
+		background-image: radial-gradient(circle at center,
+				#142230 0%,
+				/* azul claro en el centro */
+				#325a80 100%
+				/* mismo azul oscuro que las esquinas de la derecha */
+			);
+		z-index: 0;
+	}
+
+	.logo {
+		max-width: 140px;
+		height: auto;
+		position: relative;
+		z-index: 1;
+		/* para que quede por encima del degradado */
+	}
+
+	/* El panel celeste ocupa toda la pantalla */
+	.derecha {
+		flex: 1;
+		width: 100%;
+		margin: 0;
+		border-radius: 0;
+		padding: 120px 24px 32px;
+		/* espacio arriba para el logo + círculo */
+	}
+
+	.login {
+		max-width: 420px;
+		margin: 0 auto;
+	}
+
+	.usuario {
+		text-align: center;
+	}
+
+	.acciones {
+		align-items: center;
+	}
+
+	.texto {
+		text-align: center;
+	}
 }

@@ -1,52 +1,77 @@
-import React from 'react'
-import { useState,useEffect } from 'react'
-import "./login.css"
+import React, { useState } from "react";
+import "./login.css";
 
 const usuariosValidos = [
-  {usuario:"admin", contraseña: "1234"},
-  {usuario:"santy", contraseña: "santy1985"},
-  {usuario:"vani", contraseña: "vani1981"}
+	{ usuario: "admin", contraseña: "admin" },
+	{ usuario: "santy", contraseña: "santy1985" },
+	{ usuario: "vani", contraseña: "vani1981" },
 ];
 
-const login = () => {
-  const [usuario, setUsuario] = useState("");
-  const [contraseña, setContraseña] = useState("");
-  const [recordarme, setRecordarme] = useState(false);
+const Login = () => {
+	const [usuario, setUsuario] = useState("");
+	const [contraseña, setContraseña] = useState("");
+	const [recordarme, setRecordarme] = useState(false);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+	const handleSubmit = (event) => {
+		event.preventDefault();
 
-    console.log("Usuario:", usuario);
-    console.log("Contraseña:", contraseña);
-    console.log("Recordarme:", recordarme);
-  };
+		console.log("Usuario:", usuario);
+		console.log("Contraseña:", contraseña);
+		console.log("Recordarme:", recordarme);
+	};
 
+	return (
+		<form onSubmit={handleSubmit}>
+			<div className="container">
+				<div className="izquierda">
+					<img
+						src="/src/assets/imagenes/logo 2 rw.png"
+						alt="logoApp"
+						className="logo"
+					/>
+				</div>
 
-  return (
-    <div className = "container">
-      <div className='izquierda'>
-        <img src="/src/assets/imagenes/logo 2 rw.png" alt="logoApp" className='logo'/>
-      </div>
-      <div className='derecha'>
-        <div className='login'>
-          <h3 className='usuario'>USUARIO</h3>
-          <input className="input" type="text" />
-          <h3 className='usuario'>CONTRASEÑA</h3>
-          <input className="input" type="text" />
-          <label className='recordarme'>
-            <input type="checkbox"
-                    checked={recordarme} 
-                      onChange={(event) => setRecordarme(event.target.checked)}/> Recordarme
-          </label>
-        </div>
-        
+				<div className="derecha">
+					<div className="login">
+						<h3 className="usuario">USUARIO</h3>
+						<input
+							className="input"
+							type="text"
+							placeholder="Ingrese su usuario"
+							value={usuario}
+							onChange={(e) => setUsuario(e.target.value)}
+						/>
 
-        
-        
-      </div>
+						<h3 className="usuario">CONTRASEÑA</h3>
+						<input
+							className="input"
+							type="password"
+							placeholder="Ingrese su contraseña"
+							value={contraseña}
+							onChange={(e) => setContraseña(e.target.value)}
+						/>
 
-    </div>
-  )
-}
+						<label className="recordarme">
+							<input
+								type="checkbox"
+								checked={recordarme}
+								onChange={(event) => setRecordarme(event.target.checked)}
+							/>{" "}
+							Recordarme
+						</label>
 
-export default login
+						<div className="acciones">
+							<button type="submit" className="boton">
+								Iniciar sesión
+							</button>
+							<p className="recordarme">¿Olvidaste tu contraseña?</p>
+							<p className="registrarse">¿No tienes cuenta? registrate</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	);
+};
+
+export default Login;
