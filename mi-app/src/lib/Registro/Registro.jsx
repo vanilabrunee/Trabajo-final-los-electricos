@@ -1,27 +1,25 @@
 // src/lib/Registro/Registro.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Login/login.css";
 import "./Registro.css";
 
 
-
-/*	const [usuariosValidos, setUsuariosValidos] = useState([])
-	
-	useEffect(() => {
-		fetch("http://localhost:4000/users")
-		.then(response => response.json())
-		.then(data => setUsuariosValidos(data))
-	});*/
-
 const Registro = () => {
+	const [usuariosValidos, setUsuariosValidos] = useState([])
 	const [nombre, setNombre] = useState("");
 	const [usuario, setUsuario] = useState("");
 	const [email, setEmail] = useState("");
 	const [contraseña, setContraseña] = useState("");
 	const [confirmar, setConfirmar] = useState("");
 
-	const [errores, setErrores] = useState({}); // { nombre: "...", usuario: "...", ... }
+	const [errores, setErrores] = useState({}) // { nombre: "...", usuario: "...", ... }
+
+	useEffect(() => {
+		fetch("http://localhost:4000/users")
+		.then(response => response.json())
+		.then(data => setUsuariosValidos(data))
+	})
 
 	const navigate = useNavigate();
 
