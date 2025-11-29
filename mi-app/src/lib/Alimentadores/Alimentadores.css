@@ -176,6 +176,7 @@
 .alim-btn-edit {
    background-color: #1d4ed8;
    color: #e5e7eb;
+
 }
 
 .alim-btn-edit:hover:not(:disabled) {
