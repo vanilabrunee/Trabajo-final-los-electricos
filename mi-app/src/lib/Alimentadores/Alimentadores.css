@@ -205,10 +205,56 @@
    margin-bottom: 1.25rem;
 }
 
+/* Fila de edición de puesto */
 .alim-edit-row {
-   display: flex;
-   gap: 0.5rem;
+   display: grid;
+   grid-template-columns: minmax(0, 1fr) auto auto auto;
+   column-gap: 0.75rem;
    align-items: center;
+   margin-bottom: 0.5rem;
+}
+
+.alim-edit-colors {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+}
+
+.alim-edit-color-label {
+   font-size: 0.75rem;
+   color: #6b7280;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 0.15rem;
+}
+
+/* Círculos de color */
+.alim-edit-color-input {
+   -webkit-appearance: none;
+   appearance: none;
+   width: 26px;
+   height: 26px;
+   padding: 0;
+   border-radius: 999px;
+   border: 2px solid #e5e7eb;
+   background: transparent;
+   cursor: pointer;
+}
+
+/* Para que el color picker nativo respete la forma redonda en navegadores WebKit */
+.alim-edit-color-input::-webkit-color-swatch-wrapper {
+   padding: 0;
+   border-radius: 999px;
+}
+
+.alim-edit-color-input::-webkit-color-swatch {
+   border-radius: 999px;
+   border: none;
+}
+
+.alim-edit-color-input:hover {
+   transform: scale(1.05);
 }
 
 .alim-edit-input {
@@ -217,6 +263,7 @@
    border-radius: 0.5rem;
    border: 1px solid #cbd5e1;
    font-size: 0.9rem;
+   width: 100%;
 }
 
 .alim-edit-input:focus {
@@ -345,7 +392,7 @@
 /* Tarjeta "+" para crear alimentador */
 .alim-card-add {
    border: 1px dashed #64748b;
-   background-color: transparent;
+   background-color: #f9fafb;
    color: #64748b;
    display: flex;
    flex-direction: column;

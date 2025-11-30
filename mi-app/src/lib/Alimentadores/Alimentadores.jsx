@@ -24,6 +24,9 @@ const COLORES_PUESTO = [
 
 const Alimentadores = () => {
    // ===== PUESTOS (barra superior) =====
+
+   const DEFAULT_MAIN_BG = "#e5e7eb";
+
    const [puestos, setPuestos] = useState(() => {
       // Cargar desde localStorage solo una vez
       try {
@@ -47,9 +50,11 @@ const Alimentadores = () => {
 
    const [colorPuesto, setColorPuesto] = useState(COLORES_PUESTO[0]);
 
-   const [mostrarModalNuevoPuesto, setMostrarModalNuevoPuesto] = useState(false);
+   const [mostrarModalNuevoPuesto, setMostrarModalNuevoPuesto] =
+      useState(false);
 
-   const [mostrarModalEditarPuestos, setMostrarModalEditarPuestos] = useState(false);
+   const [mostrarModalEditarPuestos, setMostrarModalEditarPuestos] =
+      useState(false);
 
    const [nuevoNombrePuesto, setNuevoNombrePuesto] = useState("");
 
@@ -65,7 +70,8 @@ const Alimentadores = () => {
    const [alimentadorEnEdicion, setAlimentadorEnEdicion] = useState(null);
 
    // Puesto actualmente activo (si el id no existe, toma el primero)
-   const puestoSeleccionado = puestos.find((p) => p.id === puestoSeleccionadoId) || puestos[0] || null;
+   const puestoSeleccionado =
+      puestos.find((p) => p.id === puestoSeleccionadoId) || puestos[0] || null;
 
    // ---------- DRAG & DROP DE ALIMENTADORES ----------
 
@@ -112,16 +118,15 @@ const Alimentadores = () => {
 
       setPuestos((prev) =>
          prev.map((p) => {
-            if (p.id !== puestoSeleccionado.id) 
-					return p;
+            if (p.id !== puestoSeleccionado.id) return p;
 
             const nuevoOrden = [...p.alimentadores];
             const fromIndex = nuevoOrden.findIndex((a) => a.id === dragAlimId);
             if (fromIndex === -1) return p;
 
             const [movido] = nuevoOrden.splice(fromIndex, 1);
-            
-				nuevoOrden.push(movido);
+
+            nuevoOrden.push(movido);
 
             return { ...p, alimentadores: nuevoOrden };
          })
@@ -187,6 +192,7 @@ const Alimentadores = () => {
          id: Date.now(),
          nombre,
          color: colorPuesto,
+         bgColor: DEFAULT_MAIN_BG, // 👈 color de fondo para las tarjetas de ese puesto
          alimentadores: [],
       };
 
@@ -264,15 +270,25 @@ const Alimentadores = () => {
 
          setPuestos((prev) =>
             prev.map((p) =>
-               p.id === puestoSeleccionado.id ? { ...p, alimentadores: [...p.alimentadores, nuevoAlim], } : p
-         ));
-
+               p.id === puestoSeleccionado.id
+                  ? { ...p, alimentadores: [...p.alimentadores, nuevoAlim] }
+                  : p
+            )
+         );
       } else if (modoAlim === "editar" && alimentadorEnEdicion) {
          const { puestoId, alimId } = alimentadorEnEdicion;
 
          setPuestos((prev) =>
-            prev.map((p) => p.id === puestoId ? { ...p, alimentadores: p.alimentadores.map((a) =>
-                          a.id === alimId ? { ...a, ...datos } : a ),} : p )
+            prev.map((p) =>
+               p.id === puestoId
+                  ? {
+                       ...p,
+                       alimentadores: p.alimentadores.map((a) =>
+                          a.id === alimId ? { ...a, ...datos } : a
+                       ),
+                    }
+                  : p
+            )
          );
       }
 
@@ -281,15 +297,22 @@ const Alimentadores = () => {
 
    // 🔴 ELIMINAR ALIMENTADOR (usado por el botón del modal)
    const handleEliminarAlimentador = () => {
-      if (!alimentadorEnEdicion) 
-			return;
-		
+      if (!alimentadorEnEdicion) return;
+
       const { puestoId, alimId } = alimentadorEnEdicion;
 
       setPuestos((prev) =>
          prev.map((p) =>
-            p.id === puestoId ? { ...p, alimentadores: p.alimentadores.filter((a) => a.id !== alimId), } : p )
-	);
+            p.id === puestoId
+               ? {
+                    ...p,
+                    alimentadores: p.alimentadores.filter(
+                       (a) => a.id !== alimId
+                    ),
+                 }
+               : p
+         )
+      );
 
       cerrarModalNuevoAlim();
    };
@@ -312,12 +335,7 @@ const Alimentadores = () => {
                {puestos.map((p) => (
                   <button
                      key={p.id}
-                     className={
-                        "alim-btn" +
-                        (puestoSeleccionado && puestoSeleccionado.id === p.id
-                           ? " alim-btn-active"
-                           : "")
-                     }
+                     className={"alim-btn" + (puestoSeleccionado && puestoSeleccionado.id === p.id ? " alim-btn-active" : "")}
                      onClick={() => setPuestoSeleccionadoId(p.id)}
                      style={{ backgroundColor: p.color || "#22c55e" }}
                   >
@@ -345,7 +363,10 @@ const Alimentadores = () => {
          </nav>
 
          {/* ===== MAIN ===== */}
-         <main className="alim-main">
+         <main
+            className="alim-main"
+            style={{backgroundColor: puestoSeleccionado?.bgColor || DEFAULT_MAIN_BG,}}
+         >
             {!puestos.length ? (
                <div className="alim-empty">
                   <p>
@@ -361,7 +382,9 @@ const Alimentadores = () => {
                         key={a.id}
                         nombre={a.nombre}
                         color={a.color}
-                        onConfigClick={() => abrirModalEditarAlim(puestoSeleccionado.id, a)}
+                        onConfigClick={() =>
+                           abrirModalEditarAlim(puestoSeleccionado.id, a)
+                        }
                         draggable={true}
                         isDragging={dragAlimId === a.id} // 👈 nueva prop
                         onDragStart={() => handleDragStartAlim(a.id)}
@@ -380,7 +403,7 @@ const Alimentadores = () => {
                   >
                      <span className="alim-card-add-plus">+</span>
                      <span className="alim-card-add-text">
-                        Agregar alimentador
+                        Agregar Registrador
                      </span>
                   </button>
                </div>
@@ -449,22 +472,20 @@ const Alimentadores = () => {
          {/* ===== MODAL NUEVO / EDITAR ALIMENTADOR ===== */}
          <NuevoAlimentadorModal
             abierto={mostrarModalNuevoAlim && !!puestoSeleccionado}
+
             puestoNombre={puestoSeleccionado?.nombre ?? ""}
+
             modo={modoAlim}
+
             initialData={
-               modoAlim === "editar" &&
-               alimentadorEnEdicion &&
-               puestoSeleccionado
-                  ? puestoSeleccionado.alimentadores.find(
-                       (a) => a.id === alimentadorEnEdicion.alimId
-                    ) || null
-                  : null
+               modoAlim === "editar" && alimentadorEnEdicion 
+						&& puestoSeleccionado ? puestoSeleccionado.alimentadores.find(
+                     (a) => a.id === alimentadorEnEdicion.alimId) || null : null
             }
+
             onCancelar={cerrarModalNuevoAlim}
             onConfirmar={handleGuardarAlimentador}
-            onEliminar={
-               modoAlim === "editar" ? handleEliminarAlimentador : undefined
-            }
+            onEliminar={modoAlim === "editar" ? handleEliminarAlimentador : undefined}
          />
 
          {/* ===== MODAL EDITAR PUESTOS ===== */}
@@ -473,31 +494,56 @@ const Alimentadores = () => {
                <div className="alim-modal">
                   <h2>Editar puestos</h2>
 
-                  {puestosEditados.length === 0 ? (
-                     <p>No hay puestos para editar.</p>
-                  ) : (
-                     <div className="alim-edit-list">
-                        {puestosEditados.map((p) => (
-                           <div key={p.id} className="alim-edit-row">
-                              <input
-                                 type="text"
-                                 className="alim-edit-input"
-                                 value={p.nombre}
-                                 onChange={(e) =>
-                                    cambiarNombreEditado(p.id, e.target.value)
-                                 }
-                              />
-                              <button
-                                 type="button"
-                                 className="alim-edit-delete"
-                                 onClick={() => eliminarEditado(p.id)}
-                              >
-                                 Eliminar
-                              </button>
-                           </div>
-                        ))}
+                  {puestosEditados.map((p) => (
+                     <div key={p.id} className="alim-edit-row">
+                        {/* Nombre del puesto */}
+                        <input
+                           type="text"
+                           className="alim-edit-input"
+                           value={p.nombre}
+                           onChange={(e) =>
+                              cambiarNombreEditado(p.id, e.target.value)
+                           }
+                        />
+
+                        {/* Color del botón */}
+                        <input
+                           type="color"
+                           className="alim-edit-color-input"
+                           title="Color del botón"
+                           value={p.color || COLORES_PUESTO[0]}
+                           onChange={(e) =>
+                              setPuestosEditados((prev) =>
+                                 prev.map((px) =>
+                                    px.id === p.id ? { ...px, color: e.target.value } : px )
+                              )
+                           }
+                        />
+
+                        {/* Color de fondo del área de tarjetas */}
+                        <input
+                           type="color"
+                           className="alim-edit-color-input"
+                           title="Color de fondo del panel"
+                           value={p.bgColor || DEFAULT_MAIN_BG}
+                           onChange={(e) =>
+                              setPuestosEditados((prev) =>
+                                 prev.map((px) =>
+                                    px.id === p.id ? { ...px, bgColor: e.target.value } : px )
+                              )
+                           }
+                        />
+
+                        {/* Botón eliminar */}
+                        <button
+                           type="button"
+                           className="alim-edit-delete"
+                           onClick={() => eliminarEditado(p.id)}
+                        >
+                           Eliminar
+                        </button>
                      </div>
-                  )}
+                  ))}
 
                   <div className="alim-modal-actions">
                      <button
