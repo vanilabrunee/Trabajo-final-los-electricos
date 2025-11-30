@@ -1,9 +1,11 @@
-// src/lib/Alimentadores/Alimentadores.jsx
 import React, { useState } from "react";
 import "./Alimentadores.css";
 import AlimentadorCard from "./AlimentadorCard.jsx";
+import NuevoAlimentadorModal from "./NuevoAlimentadorModal.jsx";
 
 const Alimentadores = () => {
+
+	
    const COLORES_PUESTO = [
       "#22c55e", // verde
       "#0ea5e9", // celeste
@@ -23,23 +25,19 @@ const Alimentadores = () => {
 
    // ===== PUESTOS (barra superior) =====
    const [puestos, setPuestos] = useState([]);
-
    const [puestoSeleccionadoId, setPuestoSeleccionadoId] = useState(null);
-
    const [mostrarModalNuevoPuesto, setMostrarModalNuevoPuesto] =
       useState(false);
-
    const [mostrarModalEditarPuestos, setMostrarModalEditarPuestos] =
       useState(false);
-
    const [nuevoNombrePuesto, setNuevoNombrePuesto] = useState("");
-
    const [puestosEditados, setPuestosEditados] = useState([]);
 
    // ===== TARJETAS DE ALIMENTADORES (asociadas al puesto seleccionado) =====
    const [mostrarModalNuevoAlim, setMostrarModalNuevoAlim] = useState(false);
 
-   const [nuevoNombreAlim, setNuevoNombreAlim] = useState("");
+   const [modoAlim, setModoAlim] = useState("crear"); // "crear" | "editar"
+   const [alimentadorEnEdicion, setAlimentadorEnEdicion] = useState(null);
 
    // Puesto actualmente activo (si el id no existe, toma el primero)
    const puestoSeleccionado =
@@ -54,7 +52,7 @@ const Alimentadores = () => {
    const cerrarModalNuevoPuesto = () => {
       setMostrarModalNuevoPuesto(false);
       setNuevoNombrePuesto("");
-      setColorPuesto(COLORES_PUESTO[0]); // 👈 vuelve al color por defecto
+      setColorPuesto(COLORES_PUESTO[0]);
    };
 
    const handleCrearPuesto = (e) => {
@@ -66,17 +64,16 @@ const Alimentadores = () => {
          id: Date.now(),
          nombre,
          color: colorPuesto,
-         alimentadores: [], // 👈 importantísimo
+         alimentadores: [],
       };
 
       setPuestos((prev) => [...prev, nuevoPuesto]);
-      setPuestoSeleccionadoId(nuevoPuesto.id); // seleccionamos el nuevo
+      setPuestoSeleccionadoId(nuevoPuesto.id);
       cerrarModalNuevoPuesto();
    };
 
    // ---------- EDITAR / ELIMINAR PUESTOS ----------
    const abrirModalEditarPuestos = () => {
-      // copiamos manteniendo sus alimentadores
       setPuestosEditados(puestos.map((p) => ({ ...p })));
       setMostrarModalEditarPuestos(true);
    };
@@ -110,34 +107,64 @@ const Alimentadores = () => {
 
    // ---------- AGREGAR TARJETA DE ALIMENTADOR (AL PUESTO SELECCIONADO) ----------
    const abrirModalNuevoAlim = () => {
-      setNuevoNombreAlim("");
+      setModoAlim("crear");
+      setAlimentadorEnEdicion(null);
+      setMostrarModalNuevoAlim(true);
+   };
+
+   const abrirModalEditarAlim = (puestoId, alimentador) => {
+      setModoAlim("editar");
+      setAlimentadorEnEdicion({ puestoId, alimId: alimentador.id });
       setMostrarModalNuevoAlim(true);
    };
 
    const cerrarModalNuevoAlim = () => {
       setMostrarModalNuevoAlim(false);
-      setNuevoNombreAlim("");
    };
 
-   const handleCrearAlimentador = (e) => {
-      e.preventDefault();
-      const nombre = nuevoNombreAlim.trim();
-      if (!nombre || !puestoSeleccionado) return;
+   // datos viene desde el modal: { nombre, color, rele: {...}, analizador: {...} }
+   const handleGuardarAlimentador = (datos) => {
+      if (!datos || !datos.nombre) return;
 
-      const nuevoAlim = { id: Date.now(), nombre };
+      if (modoAlim === "crear") {
+         // crear en el puesto actualmente seleccionado
+         if (!puestoSeleccionado) return;
 
-      setPuestos((prev) =>
-         prev.map((p) =>
-            p.id === puestoSeleccionado.id
-               ? {
-                    ...p,
-                    alimentadores: [...p.alimentadores, nuevoAlim],
-                 }
-               : p
-         )
-      );
+         const nuevoAlim = {
+            id: Date.now(),
+            ...datos,
+         };
 
-      cerrarModalNuevoAlim();
+         setPuestos((prev) =>
+            prev.map((p) =>
+               p.id === puestoSeleccionado.id
+                  ? {
+                       ...p,
+                       alimentadores: [...p.alimentadores, nuevoAlim],
+                    }
+                  : p
+            )
+         );
+      } else if (modoAlim === "editar" && alimentadorEnEdicion) {
+         // editar el alimentador existente
+         const { puestoId, alimId } = alimentadorEnEdicion;
+
+         setPuestos((prev) =>
+            prev.map((p) =>
+               p.id === puestoId
+                  ? {
+                       ...p,
+                       alimentadores: p.alimentadores.map((a) =>
+                          a.id === alimId ? { ...a, ...datos } : a
+                       ),
+                    }
+                  : p
+            )
+         );
+      }
+
+      setMostrarModalNuevoAlim(false);
+      setAlimentadorEnEdicion(null);
    };
 
    return (
@@ -192,7 +219,6 @@ const Alimentadores = () => {
 
          {/* ===== MAIN ===== */}
          <main className="alim-main">
-            {/* Si no hay puestos, mostramos mensaje */}
             {!puestos.length ? (
                <div className="alim-empty">
                   <p>
@@ -202,26 +228,29 @@ const Alimentadores = () => {
                   </p>
                </div>
             ) : (
-               <>
-                  <div className="alim-cards-grid">
-                     {/* Cards del puesto seleccionado */}
-                     {puestoSeleccionado?.alimentadores.map((a) => (
-                        <AlimentadorCard key={a.id} nombre={a.nombre} />
-                     ))}
+               <div className="alim-cards-grid">
+                  {puestoSeleccionado?.alimentadores.map((a) => (
+                     <AlimentadorCard
+                        key={a.id}
+                        nombre={a.nombre}
+                        color={a.color} // 👈 le pasamos el color guardado
+                        onConfigClick={() =>
+                           abrirModalEditarAlim(puestoSeleccionado.id, a)
+                        }
+                     />
+                  ))}
 
-                     {/* Tarjeta con "+" para crear nuevo alimentador en este puesto */}
-                     <button
-                        type="button"
-                        className="alim-card alim-card-add"
-                        onClick={abrirModalNuevoAlim}
-                     >
-                        <span className="alim-card-add-plus">+</span>
-                        <span className="alim-card-add-text">
-                           Agregar alimentador
-                        </span>
-                     </button>
-                  </div>
-               </>
+                  <button
+                     type="button"
+                     className="alim-card alim-card-add"
+                     onClick={abrirModalNuevoAlim}
+                  >
+                     <span className="alim-card-add-plus">+</span>
+                     <span className="alim-card-add-text">
+                        Agregar alimentador
+                     </span>
+                  </button>
+               </div>
             )}
          </main>
 
@@ -230,6 +259,7 @@ const Alimentadores = () => {
             <div className="alim-modal-overlay">
                <div className="alim-modal">
                   <h2>Nuevo puesto</h2>
+
                   <form onSubmit={handleCrearPuesto}>
                      <label className="alim-modal-label">
                         <input
@@ -239,12 +269,11 @@ const Alimentadores = () => {
                            onChange={(e) =>
                               setNuevoNombrePuesto(e.target.value)
                            }
-                           placeholder="Ej: PUESTO 1"
+                           placeholder="PUESTO 1"
                            autoFocus
                         />
                      </label>
 
-                     {/* 👇 NUEVA PALETA DE COLORES */}
                      <div className="alim-color-picker">
                         <div className="alim-color-grid">
                            {COLORES_PUESTO.map((color) => (
@@ -283,6 +312,23 @@ const Alimentadores = () => {
                </div>
             </div>
          )}
+
+         {/* ===== MODAL NUEVO ALIMENTADOR (COMPONENTE) ===== */}
+         <NuevoAlimentadorModal
+            abierto={mostrarModalNuevoAlim && !!puestoSeleccionado}
+            puestoNombre={puestoSeleccionado?.nombre ?? ""}
+            modo={modoAlim}
+            initialData={
+               modoAlim === "editar" &&
+               alimentadorEnEdicion &&
+               puestoSeleccionado ? puestoSeleccionado.alimentadores.find((a) => a.id === alimentadorEnEdicion.alimId) || null : null
+            }
+            onCancelar={() => {
+               setMostrarModalNuevoAlim(false);
+               setAlimentadorEnEdicion(null);
+            }}
+            onConfirmar={handleGuardarAlimentador}
+         />
 
          {/* ===== MODAL EDITAR PUESTOS ===== */}
          {mostrarModalEditarPuestos && (
@@ -332,44 +378,6 @@ const Alimentadores = () => {
                         Guardar cambios
                      </button>
                   </div>
-               </div>
-            </div>
-         )}
-
-         {/* ===== MODAL NUEVA TARJETA ALIMENTADOR ===== */}
-         {mostrarModalNuevoAlim && puestoSeleccionado && (
-            <div className="alim-modal-overlay">
-               <div className="alim-modal">
-                  <h2>Nuevo alimentador en {puestoSeleccionado.nombre}</h2>
-                  <form onSubmit={handleCrearAlimentador}>
-                     <label className="alim-modal-label">
-                        Nombre del alimentador
-                        <input
-                           type="text"
-                           className="alim-modal-input"
-                           value={nuevoNombreAlim}
-                           onChange={(e) => setNuevoNombreAlim(e.target.value)}
-                           placeholder="Ej: ALIMENTADOR 5"
-                           autoFocus
-                        />
-                     </label>
-
-                     <div className="alim-modal-actions">
-                        <button
-                           type="button"
-                           className="alim-modal-btn alim-modal-btn-cancelar"
-                           onClick={cerrarModalNuevoAlim}
-                        >
-                           Cancelar
-                        </button>
-                        <button
-                           type="submit"
-                           className="alim-modal-btn alim-modal-btn-aceptar"
-                        >
-                           Aceptar
-                        </button>
-                     </div>
-                  </form>
                </div>
             </div>
          )}
