@@ -3,15 +3,51 @@ import React, { useEffect, useState } from "react";
 import "./MapeoMedicionesModal.css";
 
 const SECCIONES_MAPEO = [
-   { id: "tension_linea", titulo: "Tensión de línea (kV)", items: ["L1", "L2", "L3"] },
-   { id: "tension_entre_lineas", titulo: "Tensión entre líneas (kV)", items: ["L1-L2", "L2-L3", "L1-L3"] },
-   { id: "corriente_linea", titulo: "Corriente de línea (A)", items: ["L1", "L2", "L3"] },
-   { id: "potencia_activa", titulo: "Potencia activa (kW)", items: ["L1", "L2", "L3", "Total"] },
-   { id: "potencia_reactiva", titulo: "Potencia reactiva (kVAr)", items: ["L1", "L2", "L3", "Total"] },
-   { id: "potencia_aparente", titulo: "Potencia aparente (kVA)", items: ["L1", "L2", "L3", "Total"] },
-   { id: "factor_potencia", titulo: "Factor de Potencia", items: ["L1", "L2", "L3"] },
-   { id: "frecuencia", titulo: "Frecuencia (Hz)", items: ["L1", "L2", "L3"] },
-   { id: "corriente_neutro", titulo: "Corriente de Neutro (A)", items: ["N"] },
+   {
+      id: "tension_linea",
+      titulo: "Tensión de línea (kV)",
+      items: ["L1", "L2", "L3"],
+   },
+   {
+      id: "tension_entre_lineas",
+      titulo: "Tensión entre líneas (kV)",
+      items: ["L1-L2", "L2-L3", "L1-L3"],
+   },
+   {
+      id: "corriente_linea",
+      titulo: "Corriente de línea (A)",
+      items: ["L1", "L2", "L3"],
+   },
+   {
+      id: "potencia_activa",
+      titulo: "Potencia activa (kW)",
+      items: ["L1", "L2", "L3", "Total"],
+   },
+   {
+      id: "potencia_reactiva",
+      titulo: "Potencia reactiva (kVAr)",
+      items: ["L1", "L2", "L3", "Total"],
+   },
+   {
+      id: "potencia_aparente",
+      titulo: "Potencia aparente (kVA)",
+      items: ["L1", "L2", "L3", "Total"],
+   },
+   {
+      id: "factor_potencia",
+      titulo: "Factor de Potencia",
+      items: ["L1", "L2", "L3"],
+   },
+   {
+      id: "frecuencia",
+      titulo: "Frecuencia (Hz)",
+      items: ["L1", "L2", "L3"],
+   },
+   {
+      id: "corriente_neutro",
+      titulo: "Corriente de Neutro (A)",
+      items: ["N"],
+   },
 ];
 
 function crearMapeoVacio() {
@@ -82,7 +118,6 @@ const MapeoMedicionesModal = ({
 
    const handleSubmit = (e) => {
       e.preventDefault();
-      // devolvemos todo el objeto mapeo al padre
       onGuardar(mapeo);
    };
 
@@ -95,7 +130,9 @@ const MapeoMedicionesModal = ({
                <div className="alim-map-modal-body">
                   {SECCIONES_MAPEO.map((sec) => (
                      <div key={sec.id} className="alim-map-section">
-                        <h4 className="alim-map-section-title">{sec.titulo}</h4>
+                        <h4 className="alim-map-section-title">
+                           {sec.titulo}
+                        </h4>
 
                         {sec.items.map((itemId) => {
                            const cfg = mapeo[sec.id][itemId];

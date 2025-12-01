@@ -8,6 +8,9 @@ import MapeoMedicionesModal from "./MapeoMedicionesModal.jsx";
 const STORAGE_KEY_PUESTOS = "rw-puestos";
 const STORAGE_KEY_PUESTO_SEL = "rw-puesto-seleccionado";
 
+// 🔁 Cambiá esto a true para usar el servidor Modbus real
+const USE_MODBUS_REAL = true;
+
 const COLORES_PUESTO = [
    "#22c55e", // verde
    "#0ea5e9", // celeste
@@ -22,6 +25,143 @@ const COLORES_PUESTO = [
    "#6366f1", // índigo
    "#64748b", // gris azulado
 ];
+
+// ===== Helpers para cálculo de lecturas =====
+const aplicarFormula = (formulaStr, x) => {
+   const trimmed = (formulaStr || "").trim();
+   if (!trimmed) return x;
+   try {
+      const fn = new Function("x", `return ${trimmed};`);
+      const res = fn(x);
+      return typeof res === "number" && !Number.isNaN(res) ? res : null;
+   } catch {
+      return null;
+   }
+};
+
+const formatearValor = (valor) => {
+   if (valor == null || Number.isNaN(valor)) return "ERROR";
+   return valor.toFixed(2).replace(".", ",");
+};
+
+const calcularConsumoDesdeRegistros = (registros, mapeoMediciones) => {
+   const salida = { R: "--,--", S: "--,--", T: "--,--" };
+   if (!mapeoMediciones || !registros?.length) return salida;
+
+   const corr = mapeoMediciones.corriente_linea || {};
+   const mapFase = { L1: "R", L2: "S", L3: "T" };
+
+   ["L1", "L2", "L3"].forEach((itemId) => {
+      const cfg = corr[itemId];
+      const faseCard = mapFase[itemId];
+
+      if (!cfg?.enabled) return; // checkbox destildado → se queda "--,--"
+
+      const regNum = Number(cfg.registro);
+      if (!regNum && regNum !== 0) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      const row = registros.find((r) => r.address === regNum);
+      if (!row) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      const calculado = aplicarFormula(cfg.formula || "x", row.value);
+      if (calculado == null || Number.isNaN(calculado)) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      salida[faseCard] = formatearValor(calculado);
+   });
+
+   return salida;
+};
+
+const calcularTensionDesdeRegistros = (registros, mapeoMediciones) => {
+   const salida = { R: "--,--", S: "--,--", T: "--,--" };
+   if (!mapeoMediciones || !registros?.length) return salida;
+
+   const tens = mapeoMediciones.tension_linea || {};
+   const mapFase = { L1: "R", L2: "S", L3: "T" };
+
+   ["L1", "L2", "L3"].forEach((itemId) => {
+      const cfg = tens[itemId];
+      const faseCard = mapFase[itemId];
+
+      if (!cfg?.enabled) return;
+
+      const regNum = Number(cfg.registro);
+      if (!regNum && regNum !== 0) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      const row = registros.find((r) => r.address === regNum);
+      if (!row) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      const calculado = aplicarFormula(cfg.formula || "x", row.value);
+      if (calculado == null || Number.isNaN(calculado)) {
+         salida[faseCard] = "ERROR";
+         return;
+      }
+
+      salida[faseCard] = formatearValor(calculado);
+   });
+
+   return salida;
+};
+
+// ===== Lectura de registros: real o simulada =====
+async function leerRegistrosBackend({ ip, puerto, indiceInicial, cantRegistros }) {
+   const start = Number(indiceInicial);
+   const len = Number(cantRegistros);
+   const p = Number(puerto);
+
+   if (!ip || !p || isNaN(start) || isNaN(len) || len <= 0) {
+      return null;
+   }
+
+   // 🧪 MODO SIMULADO
+   if (!USE_MODBUS_REAL) {
+      return Array.from({ length: len }, (_, i) => ({
+         index: i,
+         address: start + i,
+         value: Math.floor(Math.random() * 501), // 0–500
+      }));
+   }
+
+   // 🌐 MODO REAL – llamar al servidor Express+Modbus
+   const resp = await fetch("http://localhost:5000/api/modbus/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+         ip,
+         puerto: p,
+         indiceInicial: start,
+         cantRegistros: len,
+      }),
+   });
+
+   const data = await resp.json();
+
+   if (!resp.ok || !data.ok) {
+      throw new Error(data.error || "Error en lectura Modbus");
+   }
+
+   // data.registros es un array de UInt16
+   return data.registros.map((v, i) => ({
+      index: i,
+      address: start + i,
+      value: v,
+   }));
+}
 
 const Alimentadores = () => {
    const DEFAULT_MAIN_BG = "#e5e7eb";
@@ -62,8 +202,8 @@ const Alimentadores = () => {
    const [alimentadorEnEdicion, setAlimentadorEnEdicion] = useState(null);
 
    // ===== LECTURAS EN TIEMPO REAL (por alimentador) =====
+   // estructura: { [alimId]: { consumo: { R,S,T }, tensionLinea: { R,S,T } } }
    const [lecturas, setLecturas] = useState({});
-   // estructura: { [alimId]: { consumo: { R, S, T }, tensionLinea: { R, S, T } } }
 
    const handleUpdateLecturasAlim = (alimId, dataParcial) => {
       if (!alimId) return;
@@ -71,20 +211,25 @@ const Alimentadores = () => {
          ...prev,
          [alimId]: {
             ...(prev[alimId] || {}),
-            ...dataParcial, // ej: { consumo: {...} } o { tensionLinea: {...} }
+            ...dataParcial,
          },
       }));
    };
 
-   // ===== MODAL MAPEO MEDICIONES =====
-   const [mostrarModalMapeo, setMostrarModalMapeo] = useState(false);
-   const [alimentadorMapeo, setAlimentadorMapeo] = useState(null); // {puestoId, alimId}
+   // Medición activa por alimentador  { [alimId]: true/false }
+   const [medicionesActivas, setMedicionesActivas] = useState({});
+
+   // Timers de setInterval por alimentador
+   const timersRef = useRef({});
 
    // Puesto actualmente activo (si el id no existe, toma el primero)
    const puestoSeleccionado =
       puestos.find((p) => p.id === puestoSeleccionadoId) || puestos[0] || null;
 
-   // Alimentador seleccionado para mapeo (objeto completo)
+   // ===== MODAL MAPEO MEDICIONES =====
+   const [mostrarModalMapeo, setMostrarModalMapeo] = useState(false);
+   const [alimentadorMapeo, setAlimentadorMapeo] = useState(null); // {puestoId, alimId}
+
    const alimMapeoObj = alimentadorMapeo
       ? (() => {
            const p = puestos.find((px) => px.id === alimentadorMapeo.puestoId);
@@ -189,6 +334,71 @@ const Alimentadores = () => {
       }
    }, [puestos, puestoSeleccionadoId]);
 
+   // Cleanup global de timers al desmontar el componente
+   useEffect(() => {
+      return () => {
+         Object.values(timersRef.current).forEach((id) => clearInterval(id));
+         timersRef.current = {};
+      };
+   }, []);
+
+   // ---------- LÓGICA DE MEDICIÓN POR ALIMENTADOR ----------
+   const tickMedicionAlim = async (alim) => {
+      const registros = await leerRegistrosBackend({
+         ip: alim.rele?.ip?.trim(),
+         puerto: alim.rele?.puerto,
+         indiceInicial: alim.rele?.indiceInicial,
+         cantRegistros: alim.rele?.cantRegistros,
+      });
+
+      if (!registros) return;
+
+      const mapeo = alim.mapeoMediciones || null;
+      const consumo = calcularConsumoDesdeRegistros(registros, mapeo);
+      const tensionLinea = calcularTensionDesdeRegistros(registros, mapeo);
+
+      handleUpdateLecturasAlim(alim.id, { consumo, tensionLinea });
+   };
+
+   const startMedicionAlim = (alimId) => {
+      if (!puestoSeleccionado) return;
+      const alim = puestoSeleccionado.alimentadores.find(
+         (a) => a.id === alimId
+      );
+      if (!alim) return;
+
+      // Tick inmediato
+      tickMedicionAlim(alim);
+
+      const periodo =
+         alim.periodoSegundos && alim.periodoSegundos > 0
+            ? alim.periodoSegundos
+            : 60;
+
+      const timerId = setInterval(() => {
+         // usamos la misma config con la que se inició la medición
+         tickMedicionAlim(alim);
+      }, periodo * 1000);
+
+      timersRef.current[alimId] = timerId;
+      setMedicionesActivas((prev) => ({ ...prev, [alimId]: true }));
+   };
+
+   const stopMedicionAlim = (alimId) => {
+      const timerId = timersRef.current[alimId];
+      if (timerId) {
+         clearInterval(timerId);
+         delete timersRef.current[alimId];
+      }
+      setMedicionesActivas((prev) => ({ ...prev, [alimId]: false }));
+   };
+
+   const toggleMedicionAlim = (alimId) => {
+      const activa = !!medicionesActivas[alimId];
+      if (activa) stopMedicionAlim(alimId);
+      else startMedicionAlim(alimId);
+   };
+
    // ---------- AGREGAR PUESTO ----------
    const abrirModalNuevoPuesto = () => {
       setNuevoNombrePuesto("");
@@ -275,7 +485,7 @@ const Alimentadores = () => {
       setAlimentadorEnEdicion(null);
    };
 
-   // datos viene desde el modal: { nombre, color, rele: {...}, analizador: {...} }
+   // datos viene desde el modal: { nombre, color, rele: {...}, analizador: {...}, periodoSegundos, mapeoMediciones? }
    const handleGuardarAlimentador = (datos) => {
       if (!datos || !datos.nombre) return;
 
@@ -316,6 +526,9 @@ const Alimentadores = () => {
       if (!alimentadorEnEdicion) return;
 
       const { puestoId, alimId } = alimentadorEnEdicion;
+
+      // si estaba midiendo, detenemos su medición
+      stopMedicionAlim(alimId);
 
       setPuestos((prev) =>
          prev.map((p) =>
@@ -365,6 +578,16 @@ const Alimentadores = () => {
 
       cerrarModalMapeo();
    };
+
+   // Alimentador completo en edición (para pasar al modal como initialData)
+   const alimEnEdicion =
+      modoAlim === "editar" &&
+      alimentadorEnEdicion &&
+      puestoSeleccionado
+         ? puestoSeleccionado.alimentadores.find(
+              (a) => a.id === alimentadorEnEdicion.alimId
+           ) || null
+         : null;
 
    return (
       <div className="alim-page">
@@ -535,27 +758,21 @@ const Alimentadores = () => {
             abierto={mostrarModalNuevoAlim && !!puestoSeleccionado}
             puestoNombre={puestoSeleccionado?.nombre ?? ""}
             modo={modoAlim}
-            initialData={
-               modoAlim === "editar" &&
-               alimentadorEnEdicion &&
-               puestoSeleccionado
-                  ? puestoSeleccionado.alimentadores.find(
-                       (a) => a.id === alimentadorEnEdicion.alimId
-                    ) || null
-                  : null
-            }
+            initialData={alimEnEdicion}
             onCancelar={cerrarModalNuevoAlim}
             onConfirmar={handleGuardarAlimentador}
             onEliminar={
                modoAlim === "editar" ? handleEliminarAlimentador : undefined
             }
-            onUpdateLecturas={
+            // Estado de medición solo para el alimentador en edición
+            isMeasuring={
+               modoAlim === "editar" &&
+               alimentadorEnEdicion &&
+               !!medicionesActivas[alimentadorEnEdicion.alimId]
+            }
+            onToggleMedicion={
                modoAlim === "editar" && alimentadorEnEdicion
-                  ? (data) =>
-                       handleUpdateLecturasAlim(
-                          alimentadorEnEdicion.alimId,
-                          data
-                       )
+                  ? () => toggleMedicionAlim(alimentadorEnEdicion.alimId)
                   : undefined
             }
          />

@@ -18,12 +18,14 @@ const AlimentadorCard = ({
    onDrop,
    onDragEnd,
 }) => {
-	   // valores por defecto si todavía no hay medición
-   const consumoSafe = consumo || { R: "ERROR", S: "ERROR", T: "ERROR" };
-   const tensionSafe = tensionLinea || { R: "ERROR", S: "ERROR", T: "ERROR" };
+   // Valores por defecto cuando todavía no hay lecturas
+   const defaultDisplay = { R: "--,--", S: "--,--", T: "--,--" };
+
+   // Si el padre aún no pasó lecturas, usamos los defaults
+   const consumoSafe = consumo || defaultDisplay;
+   const tensionSafe = tensionLinea || defaultDisplay;
 
    return (
-		
       <div
          className={"alim-card" + (isDragging ? " alim-card-dragging" : "")}
          style={{ cursor: draggable ? "grab" : "default" }}
@@ -37,7 +39,7 @@ const AlimentadorCard = ({
             className="alim-card-header"
             style={{ backgroundColor: color || "#0ea5e9" }}
          >
-            {/* 👇 contenedor de los dos iconos */}
+            {/* Iconos de configuración y mapeo */}
             <div className="alim-card-icons">
                <button
                   type="button"
@@ -66,6 +68,7 @@ const AlimentadorCard = ({
          </div>
 
          <div className="alim-card-body">
+            {/* ===== CONSUMO (A) ===== */}
             <div className="alim-card-section">
                <h3 className="alim-card-section-title">CONSUMO (A)</h3>
                <div className="alim-card-meters">
@@ -73,13 +76,14 @@ const AlimentadorCard = ({
                      <div key={fase} className="alim-card-meter">
                         <span className="alim-card-meter-phase">{fase}</span>
                         <span className="alim-card-meter-value">
-                           {consumoSafe[fase] ?? "ERROR"}
+                           {consumoSafe[fase] ?? "--,--"}
                         </span>
                      </div>
                   ))}
                </div>
             </div>
 
+            {/* ===== TENSIÓN (kV) ===== */}
             <div className="alim-card-section">
                <h3 className="alim-card-section-title">TENSIÓN (kV)</h3>
                <div className="alim-card-meters">
@@ -87,7 +91,7 @@ const AlimentadorCard = ({
                      <div key={fase} className="alim-card-meter">
                         <span className="alim-card-meter-phase">{fase}</span>
                         <span className="alim-card-meter-value">
-                           {tensionSafe[fase] ?? "ERROR"}
+                           {tensionSafe[fase] ?? "--,--"}
                         </span>
                      </div>
                   ))}
