@@ -9,6 +9,7 @@ const Login = () => {
 	const [contraseña, setContraseña] = useState("");
 	const [recordarme, setRecordarme] = useState(false);
 	const [error, setError] = useState("");
+	const [alerta, setAlerta] = useState({ mensaje: "", tipo: "" });
 
 	const navigate = useNavigate();
 	//Usuarios que usan recordarme
@@ -57,6 +58,15 @@ const Login = () => {
 			});
 	}, []); // 👈 vacío para que se ejecute solo una vez
 
+	  // Función mágica que muestra la alerta y la borra sola
+    const mostrarAlerta = (mensaje, tipo = "error") => {
+    setAlerta({ mensaje: mensaje, tipo: tipo });
+    // después de 4 segundos la borra
+    setTimeout(() => {
+    setAlerta({ mensaje: "", tipo: "" });
+    }, 4000);
+};
+
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		setError("");
@@ -69,15 +79,16 @@ const Login = () => {
 		);
 
 		if (!usuarioEncontrado) {
-			setError("El usuario no existe.");
+			mostrarAlerta("El usuario no existe", "error");
 			return;
 		}
 
 		// Comparar contraseña (ojo con la ñ en la key)
 		if (usuarioEncontrado["Contraseña"] !== contraseña) {
-			setError("La contraseña es incorrecta.");
+			mostrarAlerta("Contraseña incorrecta", "error");
 			return;
 		}
+		mostrarAlerta(`¡Bienvenido, ${usuarioEncontrado.Nombre}!`, "exito");
 
 		// Si llega acá: login OK
 		if (recordarme) {
@@ -103,7 +114,9 @@ const Login = () => {
 		}
 		
 		// Redirección directa a la página de alimentadores
+		setTimeout(() => {
 		navigate("/alimentadores");
+		}, 1200);
 	};
 
 	return (
@@ -167,6 +180,11 @@ const Login = () => {
 					</div>
 				</div>
 			</div>
+			{alerta.mensaje && (
+        <div className={`alerta alerta-${alerta.tipo}`}>
+            {alerta.mensaje}
+        </div>
+    )}
 		</form>
 	);
 };

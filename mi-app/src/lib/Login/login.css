@@ -235,3 +235,40 @@ body {
 		text-align: center;
 	}
 }
+/* ============================= */
+/* ALERTA MODERNA Y BONITA      */
+/* ============================= */
+.alerta {
+position: fixed;
+top: 30px;
+left: 50%;
+transform: translateX(-50%);
+padding: 16px 32px;
+border-radius: 16px;
+color: white;
+font-weight: 600;
+font-size: 16px;
+z-index: 9999;
+box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+animation: bajar 0.6s ease;
+text-align: center;
+}
+
+.alerta-error {
+background-color: #d32f2f;
+}
+
+.alerta-exito {
+background-color: #388e3c;
+}
+
+@keyframes bajar {
+from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+}
+to {
+    transform: translateX(-50%);
+    opacity: 1;
+}
+}
