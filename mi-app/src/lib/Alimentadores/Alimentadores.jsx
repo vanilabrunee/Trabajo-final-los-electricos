@@ -10,21 +10,21 @@ const STORAGE_KEY_PUESTOS = "rw-puestos";
 const STORAGE_KEY_PUESTO_SEL = "rw-puesto-seleccionado";
 
 const COLORES_PUESTO = [
-   "#22c55e", // verde
-   "#0ea5e9", // celeste
-   "#3b82f6", // azul
-   "#a855f7", // violeta
-   "#ec4899", // rosa
-   "#f97316", // naranja
-   "#ef4444", // rojo
-   "#eab308", // amarillo
-   "#14b8a6", // turquesa
-   "#10b981", // verde menta
-   "#6366f1", // índigo
-   "#64748b", // gris azulado
+   "#22c55e",
+   "#0ea5e9",
+   "#3b82f6",
+   "#a855f7",
+   "#ec4899",
+   "#f97316",
+   "#ef4444",
+   "#eab308",
+   "#14b8a6",
+   "#10b981",
+   "#6366f1",
+   "#64748b",
 ];
 
-// ===== Helpers para cálculo de lecturas desde RELÉ =====
+// ===== Helpers para cálculo de lecturas =====
 const aplicarFormula = (formulaStr, x) => {
    const trimmed = (formulaStr || "").trim();
    if (!trimmed) return x;
@@ -42,9 +42,17 @@ const formatearValor = (valor) => {
    return valor.toFixed(2).replace(".", ",");
 };
 
-const calcularConsumoDesdeRegistros = (registros, mapeoMediciones) => {
+// registrosPorOrigen: { rele?: [...], analizador?: [...] }
+const obtenerListaRegistros = (registrosPorOrigen, origen) => {
+   if (!registrosPorOrigen) return null;
+   const key = origen === "analizador" ? "analizador" : "rele";
+   const lista = registrosPorOrigen[key];
+   return Array.isArray(lista) ? lista : null;
+};
+
+const calcularConsumoDesdeRegistros = (registrosPorOrigen, mapeoMediciones) => {
    const salida = { R: "--,--", S: "--,--", T: "--,--" };
-   if (!mapeoMediciones || !registros?.length) return salida;
+   if (!mapeoMediciones) return salida;
 
    const corr = mapeoMediciones.corriente_linea || {};
    const mapFase = { L1: "R", L2: "S", L3: "T" };
@@ -56,13 +64,22 @@ const calcularConsumoDesdeRegistros = (registros, mapeoMediciones) => {
       if (!cfg?.enabled) return; // checkbox destildado → se queda "--,--"
 
       const regNum = Number(cfg.registro);
-      if (!regNum && regNum !== 0) {
-         salida[faseCard] = "ERROR";
+      // Config incompleta → dejamos "--,--" sin marcar ERROR
+      if ((!Number.isFinite(regNum) && regNum !== 0) || cfg.registro === "") {
          return;
       }
 
-      const row = registros.find((r) => r.address === regNum);
+      const origen = cfg.origen || "rele"; // default: relé
+      const lista = obtenerListaRegistros(registrosPorOrigen, origen);
+
+      // No hay datos aún para ese origen (no se está midiendo) → "--,--"
+      if (!lista || lista.length === 0) {
+         return;
+      }
+
+      const row = lista.find((r) => r.address === regNum);
       if (!row) {
+         // Sí hay datos para ese origen pero no ese registro → ERROR
          salida[faseCard] = "ERROR";
          return;
       }
@@ -79,9 +96,9 @@ const calcularConsumoDesdeRegistros = (registros, mapeoMediciones) => {
    return salida;
 };
 
-const calcularTensionDesdeRegistros = (registros, mapeoMediciones) => {
+const calcularTensionDesdeRegistros = (registrosPorOrigen, mapeoMediciones) => {
    const salida = { R: "--,--", S: "--,--", T: "--,--" };
-   if (!mapeoMediciones || !registros?.length) return salida;
+   if (!mapeoMediciones) return salida;
 
    const tens = mapeoMediciones.tension_linea || {};
    const mapFase = { L1: "R", L2: "S", L3: "T" };
@@ -93,12 +110,20 @@ const calcularTensionDesdeRegistros = (registros, mapeoMediciones) => {
       if (!cfg?.enabled) return;
 
       const regNum = Number(cfg.registro);
-      if (!regNum && regNum !== 0) {
-         salida[faseCard] = "ERROR";
+      // Config incompleta → dejamos "--,--"
+      if ((!Number.isFinite(regNum) && regNum !== 0) || cfg.registro === "") {
          return;
       }
 
-      const row = registros.find((r) => r.address === regNum);
+      const origen = cfg.origen || "rele";
+      const lista = obtenerListaRegistros(registrosPorOrigen, origen);
+
+      // No hay datos todavía para ese origen → "--,--"
+      if (!lista || lista.length === 0) {
+         return;
+      }
+
+      const row = lista.find((r) => r.address === regNum);
       if (!row) {
          salida[faseCard] = "ERROR";
          return;
@@ -115,6 +140,7 @@ const calcularTensionDesdeRegistros = (registros, mapeoMediciones) => {
 
    return salida;
 };
+
 
 const Alimentadores = () => {
    const DEFAULT_MAIN_BG = "#e5e7eb";
@@ -154,8 +180,8 @@ const Alimentadores = () => {
    const [dragAlimId, setDragAlimId] = useState(null);
    const [alimentadorEnEdicion, setAlimentadorEnEdicion] = useState(null);
 
-   // ===== LECTURAS EN TIEMPO REAL (para tarjetas, desde RELÉ) =====
-   // estructura: { [alimId]: { consumo: { R,S,T }, tensionLinea: { R,S,T } } }
+   // ===== LECTURAS EN TIEMPO REAL (por alimentador) =====
+   // { [alimId]: { consumo: {R,S,T}, tensionLinea: {R,S,T} } }
    const [lecturas, setLecturas] = useState({});
 
    const handleUpdateLecturasAlim = (alimId, dataParcial) => {
@@ -169,21 +195,17 @@ const Alimentadores = () => {
       }));
    };
 
-   // ===== REGISTROS EN VIVO (separado por origen) =====
-   // { [alimId]: [{ index, address, value }, ...] }
-   const [registrosEnVivoRele, setRegistrosEnVivoRele] = useState({});
-   const [registrosEnVivoAnalizador, setRegistrosEnVivoAnalizador] =
-      useState({});
+   // NUEVO: registros crudos por alimentador y origen
+   // { [alimId]: { rele?: [{index, address, value}], analizador?: [...] } }
+   const [registrosEnVivo, setRegistrosEnVivo] = useState({});
 
-   // ===== MEDICIONES ACTIVAS (separadas) =====
-   // { [alimId]: true/false }
-   const [medicionesActivasRele, setMedicionesActivasRele] = useState({});
-   const [medicionesActivasAnalizador, setMedicionesActivasAnalizador] =
-      useState({});
+   // Medición activa por alimentador y equipo:
+   // { [alimId]: { rele: bool, analizador: bool } }
+   const [medicionesActivas, setMedicionesActivas] = useState({});
 
-   // Timers de setInterval por alimentador y origen
-   const timersRefRele = useRef({});
-   const timersRefAnalizador = useRef({});
+   // Timers de setInterval por alimentador y equipo:
+   // { [alimId]: { rele: timerId, analizador: timerId } }
+   const timersRef = useRef({});
 
    // Puesto actualmente activo (si el id no existe, toma el primero)
    const puestoSeleccionado =
@@ -300,97 +322,58 @@ const Alimentadores = () => {
    // Cleanup global de timers al desmontar el componente
    useEffect(() => {
       return () => {
-         Object.values(timersRefRele.current).forEach((id) => clearInterval(id));
-         Object.values(timersRefAnalizador.current).forEach((id) =>
-            clearInterval(id)
-         );
-         timersRefRele.current = {};
-         timersRefAnalizador.current = {};
+         Object.values(timersRef.current).forEach((timersPorAlim) => {
+            if (timersPorAlim?.rele) clearInterval(timersPorAlim.rele);
+            if (timersPorAlim?.analizador)
+               clearInterval(timersPorAlim.analizador);
+         });
+         timersRef.current = {};
       };
    }, []);
 
-   // ---------- LÓGICA DE MEDICIÓN: RELÉ ----------
-   const tickMedicionRele = async (alim) => {
-      const registros = await leerRegistrosModbus({
-         ip: alim.rele?.ip?.trim(),
-         puerto: alim.rele?.puerto,
-         indiceInicial: alim.rele?.indiceInicial,
-         cantRegistros: alim.rele?.cantRegistros,
-      });
-
-      if (!registros) return;
-
-      setRegistrosEnVivoRele((prev) => ({
-         ...prev,
-         [alim.id]: registros,
-      }));
-
-      const mapeo = alim.mapeoMediciones || null;
-      const consumo = calcularConsumoDesdeRegistros(registros, mapeo);
-      const tensionLinea = calcularTensionDesdeRegistros(registros, mapeo);
-
-      handleUpdateLecturasAlim(alim.id, { consumo, tensionLinea });
-   };
-
-   const startMedicionRele = (alimId) => {
-      if (!puestoSeleccionado) return;
-      const alim = puestoSeleccionado.alimentadores.find(
-         (a) => a.id === alimId
-      );
+   // ---------- LÓGICA DE MEDICIÓN POR ALIMENTADOR Y EQUIPO ----------
+   // origen: "rele" | "analizador"
+   const tickMedicionAlim = async (alim, origen) => {
       if (!alim) return;
 
-      // Tick inmediato
-      tickMedicionRele(alim);
+      const cfg = origen === "analizador" ? alim.analizador : alim.rele;
 
-      const periodo =
-         alim.periodoSegundos && alim.periodoSegundos > 0
-            ? alim.periodoSegundos
-            : 60;
-
-      const timerId = setInterval(() => {
-         tickMedicionRele(alim);
-      }, periodo * 1000);
-
-      timersRefRele.current[alimId] = timerId;
-      setMedicionesActivasRele((prev) => ({ ...prev, [alimId]: true }));
-   };
-
-   const stopMedicionRele = (alimId) => {
-      const timerId = timersRefRele.current[alimId];
-      if (timerId) {
-         clearInterval(timerId);
-         delete timersRefRele.current[alimId];
+      if (!cfg?.ip || !cfg?.puerto || !cfg?.cantRegistros) {
+         // configuración incompleta → no se intenta leer
+         return;
       }
-      setMedicionesActivasRele((prev) => ({ ...prev, [alimId]: false }));
-   };
 
-   const toggleMedicionRele = (alimId) => {
-      const activa = !!medicionesActivasRele[alimId];
-      if (activa) stopMedicionRele(alimId);
-      else startMedicionRele(alimId);
-   };
-
-   // ---------- LÓGICA DE MEDICIÓN: ANALIZADOR ----------
-   const tickMedicionAnalizador = async (alim) => {
       const registros = await leerRegistrosModbus({
-         ip: alim.analizador?.ip?.trim(),
-         puerto: alim.analizador?.puerto,
-         indiceInicial: alim.analizador?.indiceInicial,
-         cantRegistros: alim.analizador?.cantRegistros,
+         ip: cfg.ip?.trim(),
+         puerto: cfg.puerto,
+         indiceInicial: cfg.indiceInicial,
+         cantRegistros: cfg.cantRegistros,
       });
 
       if (!registros) return;
 
-      setRegistrosEnVivoAnalizador((prev) => ({
-         ...prev,
-         [alim.id]: registros,
-      }));
+      // Usamos actualización funcional para no pisar al otro origen
+      setRegistrosEnVivo((prev) => {
+         const prevAlim = prev[alim.id] || {};
+         const combinados = {
+            ...prevAlim,
+            [origen]: registros,
+         };
 
-      // Por ahora, no actualizamos 'lecturas' de la tarjeta con el analizador.
-      // Más adelante, cuando definamos el mapeo por origen, se puede integrar acá.
+         // recalculo lecturas usando ambos orígenes
+         const mapeo = alim.mapeoMediciones || null;
+         const consumo = calcularConsumoDesdeRegistros(combinados, mapeo);
+         const tensionLinea = calcularTensionDesdeRegistros(combinados, mapeo);
+         handleUpdateLecturasAlim(alim.id, { consumo, tensionLinea });
+
+         return {
+            ...prev,
+            [alim.id]: combinados,
+         };
+      });
    };
 
-   const startMedicionAnalizador = (alimId) => {
+   const startMedicionAlim = (alimId, equipo) => {
       if (!puestoSeleccionado) return;
       const alim = puestoSeleccionado.alimentadores.find(
          (a) => a.id === alimId
@@ -398,35 +381,56 @@ const Alimentadores = () => {
       if (!alim) return;
 
       // Tick inmediato
-      tickMedicionAnalizador(alim);
+      tickMedicionAlim(alim, equipo);
 
       const periodo =
-         alim.analizador?.periodoSegundos &&
-         alim.analizador.periodoSegundos > 0
+         equipo === "rele"
+            ? alim.periodoSegundos && alim.periodoSegundos > 0
+               ? alim.periodoSegundos
+               : 60
+            : alim.analizador?.periodoSegundos &&
+              alim.analizador.periodoSegundos > 0
             ? alim.analizador.periodoSegundos
             : 60;
 
       const timerId = setInterval(() => {
-         tickMedicionAnalizador(alim);
+         tickMedicionAlim(alim, equipo);
       }, periodo * 1000);
 
-      timersRefAnalizador.current[alimId] = timerId;
-      setMedicionesActivasAnalizador((prev) => ({ ...prev, [alimId]: true }));
+      timersRef.current[alimId] = {
+         ...(timersRef.current[alimId] || {}),
+         [equipo]: timerId,
+      };
+
+      setMedicionesActivas((prev) => ({
+         ...prev,
+         [alimId]: { ...(prev[alimId] || {}), [equipo]: true },
+      }));
    };
 
-   const stopMedicionAnalizador = (alimId) => {
-      const timerId = timersRefAnalizador.current[alimId];
-      if (timerId) {
-         clearInterval(timerId);
-         delete timersRefAnalizador.current[alimId];
+   const stopMedicionAlim = (alimId, equipo) => {
+      const timers = timersRef.current[alimId];
+      if (timers && timers[equipo]) {
+         clearInterval(timers[equipo]);
+         delete timers[equipo];
       }
-      setMedicionesActivasAnalizador((prev) => ({ ...prev, [alimId]: false }));
+      if (timers && Object.keys(timers).length === 0) {
+         delete timersRef.current[alimId];
+      }
+
+      setMedicionesActivas((prev) => ({
+         ...prev,
+         [alimId]: {
+            ...(prev[alimId] || {}),
+            [equipo]: false,
+         },
+      }));
    };
 
-   const toggleMedicionAnalizador = (alimId) => {
-      const activa = !!medicionesActivasAnalizador[alimId];
-      if (activa) stopMedicionAnalizador(alimId);
-      else startMedicionAnalizador(alimId);
+   const toggleMedicionAlim = (alimId, equipo) => {
+      const activa = !!medicionesActivas[alimId]?.[equipo];
+      if (activa) stopMedicionAlim(alimId, equipo);
+      else startMedicionAlim(alimId, equipo);
    };
 
    // ---------- AGREGAR PUESTO ----------
@@ -558,8 +562,8 @@ const Alimentadores = () => {
       const { puestoId, alimId } = alimentadorEnEdicion;
 
       // si estaba midiendo, detenemos sus mediciones
-      stopMedicionRele(alimId);
-      stopMedicionAnalizador(alimId);
+      stopMedicionAlim(alimId, "rele");
+      stopMedicionAlim(alimId, "analizador");
 
       setPuestos((prev) =>
          prev.map((p) =>
@@ -617,6 +621,27 @@ const Alimentadores = () => {
               (a) => a.id === alimentadorEnEdicion.alimId
            ) || null
          : null;
+
+   // Estados de medición y registros por equipo para el alim en edición
+   const isMeasuringRele =
+      modoAlim === "editar" && alimentadorEnEdicion
+         ? !!medicionesActivas[alimentadorEnEdicion.alimId]?.rele
+         : false;
+
+   const isMeasuringAnalizador =
+      modoAlim === "editar" && alimentadorEnEdicion
+         ? !!medicionesActivas[alimentadorEnEdicion.alimId]?.analizador
+         : false;
+
+   const regsRele =
+      alimEnEdicion && registrosEnVivo[alimEnEdicion.id]
+         ? registrosEnVivo[alimEnEdicion.id].rele || []
+         : [];
+
+   const regsAnalizador =
+      alimEnEdicion && registrosEnVivo[alimEnEdicion.id]
+         ? registrosEnVivo[alimEnEdicion.id].analizador || []
+         : [];
 
    return (
       <div className="alim-page">
@@ -793,36 +818,26 @@ const Alimentadores = () => {
             onEliminar={
                modoAlim === "editar" ? handleEliminarAlimentador : undefined
             }
-            // Estado de medición sólo para el alimentador en edición
-            isMeasuringRele={
-               modoAlim === "editar" &&
-               alimentadorEnEdicion &&
-               !!medicionesActivasRele[alimentadorEnEdicion.alimId]
-            }
-            isMeasuringAnalizador={
-               modoAlim === "editar" &&
-               alimentadorEnEdicion &&
-               !!medicionesActivasAnalizador[alimentadorEnEdicion.alimId]
-            }
+            // Estado de medición por equipo para el alimentador en edición
+            isMeasuringRele={isMeasuringRele}
+            isMeasuringAnalizador={isMeasuringAnalizador}
             onToggleMedicionRele={
                modoAlim === "editar" && alimentadorEnEdicion
-                  ? () => toggleMedicionRele(alimentadorEnEdicion.alimId)
+                  ? () =>
+                       toggleMedicionAlim(alimentadorEnEdicion.alimId, "rele")
                   : undefined
             }
             onToggleMedicionAnalizador={
                modoAlim === "editar" && alimentadorEnEdicion
-                  ? () => toggleMedicionAnalizador(alimentadorEnEdicion.alimId)
+                  ? () =>
+                       toggleMedicionAlim(
+                          alimentadorEnEdicion.alimId,
+                          "analizador"
+                       )
                   : undefined
             }
-            // Registros crudos para mostrar en la tabla del modal
-            registrosRele={
-               alimEnEdicion ? registrosEnVivoRele[alimEnEdicion.id] || [] : []
-            }
-            registrosAnalizador={
-               alimEnEdicion
-                  ? registrosEnVivoAnalizador[alimEnEdicion.id] || []
-                  : []
-            }
+            registrosRele={regsRele}
+            registrosAnalizador={regsAnalizador}
          />
 
          {/* ===== MODAL EDITAR PUESTOS ===== */}

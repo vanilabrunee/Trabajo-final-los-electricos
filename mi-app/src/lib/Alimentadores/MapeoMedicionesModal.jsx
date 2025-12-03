@@ -50,6 +50,7 @@ const SECCIONES_MAPEO = [
    },
 ];
 
+// Ahora cada item tiene también `origen` ("rele" | "analizador")
 function crearMapeoVacio() {
    const base = {};
    SECCIONES_MAPEO.forEach((sec) => {
@@ -59,6 +60,7 @@ function crearMapeoVacio() {
             enabled: false,
             registro: "",
             formula: "",
+            origen: "rele", // valor por defecto
          };
       });
    });
@@ -88,9 +90,12 @@ const MapeoMedicionesModal = ({
       const combinado = { ...base };
       SECCIONES_MAPEO.forEach((sec) => {
          sec.items.forEach((item) => {
+            const guardado = initialMapeo[sec.id]?.[item] || {};
             combinado[sec.id][item] = {
                ...base[sec.id][item],
-               ...(initialMapeo[sec.id]?.[item] || {}),
+               ...guardado,
+               // si el mapeo viejo no tenía origen, lo dejamos en "rele"
+               origen: guardado.origen || "rele",
             };
          });
       });
@@ -153,6 +158,7 @@ const MapeoMedicionesModal = ({
                                     <span>{itemId}</span>
                                  </label>
 
+                                 {/* Registro */}
                                  <input
                                     type="number"
                                     className="alim-map-input"
@@ -169,6 +175,27 @@ const MapeoMedicionesModal = ({
                                     }
                                  />
 
+                                 {/* Origen: Relé / Analizador */}
+                                 <select
+                                    className="alim-map-input alim-map-origen"
+                                    disabled={!cfg.enabled}
+                                    value={cfg.origen || "rele"}
+                                    onChange={(e) =>
+                                       actualizarMapeo(
+                                          sec.id,
+                                          itemId,
+                                          "origen",
+                                          e.target.value
+                                       )
+                                    }
+                                 >
+                                    <option value="rele">Relé</option>
+                                    <option value="analizador">
+                                       Analizador
+                                    </option>
+                                 </select>
+
+                                 {/* Fórmula */}
                                  <input
                                     type="text"
                                     className="alim-map-input alim-map-formula"

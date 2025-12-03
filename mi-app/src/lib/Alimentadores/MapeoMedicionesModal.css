@@ -44,6 +44,10 @@
    font-weight: 600;
 }
 
+.alim-map-origen {
+   max-width: 110px;
+}
+
 .alim-map-row {
    display: grid;
    grid-template-columns: auto 80px 1fr;
@@ -73,6 +77,6 @@
 }
 
 .alim-map-formula {
-   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
-      Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono", "Courier New", monospace;
 }

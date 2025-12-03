@@ -27,13 +27,11 @@ const NuevoAlimentadorModal = ({
    onConfirmar,
    onEliminar,
 
-   // estado/control de medición desde el padre (separado por origen)
+   // NUEVO: estado/control por equipo
    isMeasuringRele = false,
    isMeasuringAnalizador = false,
    onToggleMedicionRele,
    onToggleMedicionAnalizador,
-
-   // registros en vivo desde el padre (separado por origen)
    registrosRele = [],
    registrosAnalizador = [],
 }) => {
@@ -48,8 +46,6 @@ const NuevoAlimentadorModal = ({
       indiceInicial: "",
       cantRegistros: "",
    });
-
-   // Periodo de actualización (s) para el RELÉ (usa Alimentadores)
    const [periodoSegundos, setPeriodoSegundos] = useState("60");
 
    // Config ANALIZADOR
@@ -59,15 +55,13 @@ const NuevoAlimentadorModal = ({
       indiceInicial: "",
       cantRegistros: "",
    });
-
-   // Periodo de actualización (s) para el ANALIZADOR (se guarda en analizador)
    const [periodoSegundosAnalizador, setPeriodoSegundosAnalizador] =
       useState("60");
 
-   // Estado del test de conexión (separado por origen)
+   // Estado de TEST por equipo
    const [isTestingRele, setIsTestingRele] = useState(false);
    const [testErrorRele, setTestErrorRele] = useState("");
-   const [testRowsRele, setTestRowsRele] = useState([]); // [{index,address,value}]
+   const [testRowsRele, setTestRowsRele] = useState([]);
 
    const [isTestingAnalizador, setIsTestingAnalizador] = useState(false);
    const [testErrorAnalizador, setTestErrorAnalizador] = useState("");
@@ -158,7 +152,6 @@ const NuevoAlimentadorModal = ({
       setTestRowsAnalizador([]);
    }, [abierto, initialData]);
 
-   // si el modal no está abierto, no renderizamos nada
    if (!abierto) return null;
 
    // === TEST CONEXIÓN RELÉ ===
@@ -289,48 +282,39 @@ const NuevoAlimentadorModal = ({
       }
    };
 
-   // === Derivados según pestaña activa ===
-   const isTabRele = tab === "rele";
-
-   const isTesting = isTabRele ? isTestingRele : isTestingAnalizador;
-   const testError = isTabRele ? testErrorRele : testErrorAnalizador;
-
-   const rowsToShow = isTabRele
-      ? isMeasuringRele && registrosRele && registrosRele.length > 0
+   // Qué filas mostramos en cada tabla
+   const rowsToShowRele =
+      isMeasuringRele && registrosRele && registrosRele.length > 0
          ? registrosRele
-         : testRowsRele
-      : isMeasuringAnalizador &&
-        registrosAnalizador &&
-        registrosAnalizador.length > 0
-      ? registrosAnalizador
-      : testRowsAnalizador;
+         : testRowsRele;
 
-   const mensajeTabla = isTabRele
-      ? isMeasuringRele && registrosRele && registrosRele.length > 0
+   const rowsToShowAnalizador =
+      isMeasuringAnalizador &&
+      registrosAnalizador &&
+      registrosAnalizador.length > 0
+         ? registrosAnalizador
+         : testRowsAnalizador;
+
+   const mensajeTablaRele =
+      isMeasuringRele && registrosRele && registrosRele.length > 0
          ? `Medición en curso. Registros en vivo: ${registrosRele.length}`
-         : `Test correcto. Registros leídos: ${testRowsRele.length}`
-      : isMeasuringAnalizador &&
-        registrosAnalizador &&
-        registrosAnalizador.length > 0
-      ? `Medición en curso. Registros en vivo: ${registrosAnalizador.length}`
-      : `Test correcto. Registros leídos: ${testRowsAnalizador.length}`;
+         : `Test correcto. Registros leídos: ${testRowsRele.length}`;
 
-   const handleTestClick = () => {
-      if (isTabRele) handleTestConexionRele();
-      else handleTestConexionAnalizador();
-   };
+   const mensajeTablaAnalizador =
+      isMeasuringAnalizador &&
+      registrosAnalizador &&
+      registrosAnalizador.length > 0
+         ? `Medición en curso. Registros en vivo: ${registrosAnalizador.length}`
+         : `Test correcto. Registros leídos: ${testRowsAnalizador.length}`;
 
-   const handleToggleMedicionClick = () => {
-      if (isTabRele) {
-         onToggleMedicionRele && onToggleMedicionRele();
-      } else {
-         onToggleMedicionAnalizador && onToggleMedicionAnalizador();
-      }
-   };
+   // Habilitación de botones de medición por tab
+   const puedeMedirRele =
+      !!onToggleMedicionRele && !!rele.ip.trim() && !!rele.puerto;
 
-   const estaMidiendo = isTabRele ? isMeasuringRele : isMeasuringAnalizador;
-   const tieneToggle =
-      isTabRele ? !!onToggleMedicionRele : !!onToggleMedicionAnalizador;
+   const puedeMedirAnalizador =
+      !!onToggleMedicionAnalizador &&
+      !!analizador.ip.trim() &&
+      !!analizador.puerto;
 
    return (
       <div className="alim-modal-overlay">
@@ -491,11 +475,75 @@ const NuevoAlimentadorModal = ({
                               Number(periodoSegundos) > 0 &&
                               Number(periodoSegundos) < 60 && (
                                  <p className="alim-warning">
-                                    ⚠️ Periodos menores a 60&nbsp;(s) pueden
+                                    ⚠️ Periodos menores a 60&nbsp;s pueden
                                     recargar el sistema y la red de
-                                    comunicaciones. ⚠️
+                                    comunicaciones.
                                  </p>
                               )}
+
+                           {/* Botones y tabla RELÉ */}
+                           <div className="alim-test-row">
+                              <button
+                                 type="button"
+                                 className="alim-test-btn"
+                                 onClick={handleTestConexionRele}
+                                 disabled={isTestingRele}
+                              >
+                                 {isTestingRele ? "Probando..." : "Test conexión"}
+                              </button>
+
+                              <button
+                                 type="button"
+                                 className={
+                                    "alim-test-btn" +
+                                    (isMeasuringRele
+                                       ? " alim-test-btn-stop"
+                                       : " alim-test-btn-secondary")
+                                 }
+                                 onClick={() =>
+                                    onToggleMedicionRele &&
+                                    onToggleMedicionRele()
+                                 }
+                                 disabled={isTestingRele || !puedeMedirRele}
+                              >
+                                 {isMeasuringRele
+                                    ? "Detener medición"
+                                    : "Iniciar medición"}
+                              </button>
+                           </div>
+
+                           {testErrorRele && (
+                              <div className="alim-test-message alim-test-error">
+                                 {testErrorRele}
+                              </div>
+                           )}
+
+                           {!testErrorRele && rowsToShowRele.length > 0 && (
+                              <div className="alim-test-table">
+                                 <div className="alim-test-message alim-test-ok">
+                                    {mensajeTablaRele}
+                                 </div>
+
+                                 <table>
+                                    <thead>
+                                       <tr>
+                                          <th>#</th>
+                                          <th>Dirección</th>
+                                          <th>Valor</th>
+                                       </tr>
+                                    </thead>
+                                    <tbody>
+                                       {rowsToShowRele.map((r) => (
+                                          <tr key={r.index}>
+                                             <td>{r.index}</td>
+                                             <td>{r.address}</td>
+                                             <td>{r.value}</td>
+                                          </tr>
+                                       ))}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           )}
                         </div>
                      )}
 
@@ -581,84 +629,92 @@ const NuevoAlimentadorModal = ({
                                  className="alim-field-input"
                                  value={periodoSegundosAnalizador}
                                  onChange={(e) =>
-                                    setPeriodoSegundosAnalizador(e.target.value)
+                                    setPeriodoSegundosAnalizador(
+                                       e.target.value
+                                    )
                                  }
                                  placeholder="Ej: 60"
                                  min={1}
                               />
+
+                              {periodoSegundosAnalizador &&
+                                 Number(periodoSegundosAnalizador) > 0 &&
+                                 Number(periodoSegundosAnalizador) < 60 && (
+                                    <p className="alim-warning">
+                                       Periodos menores a 60 s pueden recargar
+                                       el sistema y la red de comunicaciones.
+                                    </p>
+                                 )}
                            </label>
 
-                           {periodoSegundosAnalizador &&
-                              Number(periodoSegundosAnalizador) > 0 &&
-                              Number(periodoSegundosAnalizador) < 60 && (
-                                 <p className="alim-warning">
-                                    ⚠️ Periodos menores a 60&nbsp;(s) pueden
-                                    recargar el sistema y la red de
-                                    comunicaciones. ⚠️
-                                 </p>
-                              )}
-                        </div>
-                     )}
+                           {/* Botones y tabla ANALIZADOR */}
+                           <div className="alim-test-row">
+                              <button
+                                 type="button"
+                                 className="alim-test-btn"
+                                 onClick={handleTestConexionAnalizador}
+                                 disabled={isTestingAnalizador}
+                              >
+                                 {isTestingAnalizador
+                                    ? "Probando..."
+                                    : "Test conexión"}
+                              </button>
 
-                     {/* Botones Test conexión + Iniciar/Detener medición */}
-                     <div className="alim-test-row">
-                        <button
-                           type="button"
-                           className="alim-test-btn"
-                           onClick={handleTestClick}
-                           disabled={isTesting}
-                        >
-                           {isTesting ? "Probando..." : "Test conexión"}
-                        </button>
-
-                        <button
-                           type="button"
-                           className={
-                              "alim-test-btn" +
-                              (estaMidiendo
-                                 ? " alim-test-btn-stop"
-                                 : " alim-test-btn-secondary")
-                           }
-                           onClick={handleToggleMedicionClick}
-                           disabled={isTesting || !tieneToggle}
-                        >
-                           {estaMidiendo
-                              ? "Detener medición"
-                              : "Iniciar medición"}
-                        </button>
-                     </div>
-
-                     {/* Resultado test / tabla registros */}
-                     {testError && (
-                        <div className="alim-test-message alim-test-error">
-                           {testError}
-                        </div>
-                     )}
-
-                     {!testError && rowsToShow.length > 0 && (
-                        <div className="alim-test-table">
-                           <div className="alim-test-message alim-test-ok">
-                              {mensajeTabla}
+                              <button
+                                 type="button"
+                                 className={
+                                    "alim-test-btn" +
+                                    (isMeasuringAnalizador
+                                       ? " alim-test-btn-stop"
+                                       : " alim-test-btn-secondary")
+                                 }
+                                 onClick={() =>
+                                    onToggleMedicionAnalizador &&
+                                    onToggleMedicionAnalizador()
+                                 }
+                                 disabled={
+                                    isTestingAnalizador || !puedeMedirAnalizador
+                                 }
+                              >
+                                 {isMeasuringAnalizador
+                                    ? "Detener medición"
+                                    : "Iniciar medición"}
+                              </button>
                            </div>
 
-                           <table>
-                              <thead>
-                                 <tr>
-                                    <th>#</th>
-                                    <th>Dirección</th>
-                                    <th>Valor</th>
-                                 </tr>
-                              </thead>
-                              <tbody>
-                                 {rowsToShow.map((r) => (
-                                    <tr key={r.index}>
-                                       <td>{r.index}</td>
-                                       <td>{r.address}</td>
-                                       <td>{r.value}</td>
-                                    </tr>
-                                 ))}
-                              </tbody>
-                           </table>
+                           {testErrorAnalizador && (
+                              <div className="alim-test-message alim-test-error">
+                                 {testErrorAnalizador}
+                              </div>
+                           )}
+
+                           {!testErrorAnalizador &&
+                              rowsToShowAnalizador.length > 0 && (
+                                 <div className="alim-test-table">
+                                    <div className="alim-test-message alim-test-ok">
+                                       {mensajeTablaAnalizador}
+                                    </div>
+
+                                    <table>
+                                       <thead>
+                                          <tr>
+                                             <th>#</th>
+                                             <th>Dirección</th>
+                                             <th>Valor</th>
+                                          </tr>
+                                       </thead>
+                                       <tbody>
+                                          {rowsToShowAnalizador.map((r) => (
+                                             <tr key={r.index}>
+                                                <td>{r.index}</td>
+                                                <td>{r.address}</td>
+                                                <td>{r.value}</td>
+                                             </tr>
+                                          ))}
+                                       </tbody>
+                                    </table>
+                                 </div>
+                              )}
                         </div>
                      )}
                   </div>
