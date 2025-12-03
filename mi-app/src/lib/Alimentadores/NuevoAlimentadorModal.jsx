@@ -26,11 +26,16 @@ const NuevoAlimentadorModal = ({
    onCancelar,
    onConfirmar,
    onEliminar,
-   // estado/control de medición desde el padre
-   isMeasuring = false,
-   onToggleMedicion,
-   // ⬅️ NUEVO: registros en vivo que viene del padre
-   registros = [],
+
+   // estado/control de medición desde el padre (separado por origen)
+   isMeasuringRele = false,
+   isMeasuringAnalizador = false,
+   onToggleMedicionRele,
+   onToggleMedicionAnalizador,
+
+   // registros en vivo desde el padre (separado por origen)
+   registrosRele = [],
+   registrosAnalizador = [],
 }) => {
    const [nombre, setNombre] = useState("");
    const [color, setColor] = useState(COLORES_ALIM[0]);
@@ -47,10 +52,6 @@ const NuevoAlimentadorModal = ({
    // Periodo de actualización (s) para el RELÉ (usa Alimentadores)
    const [periodoSegundos, setPeriodoSegundos] = useState("60");
 
-   // Periodo de actualización (s) para el ANALIZADOR (se guarda en analizador)
-   const [periodoSegundosAnalizador, setPeriodoSegundosAnalizador] =
-      useState("60");
-
    // Config ANALIZADOR
    const [analizador, setAnalizador] = useState({
       ip: "",
@@ -59,10 +60,18 @@ const NuevoAlimentadorModal = ({
       cantRegistros: "",
    });
 
-   // Estado del test de conexión (solo informativo dentro del modal)
-   const [isTesting, setIsTesting] = useState(false);
-   const [testError, setTestError] = useState("");
-   const [testRows, setTestRows] = useState([]); // [{index, address, value}]
+   // Periodo de actualización (s) para el ANALIZADOR (se guarda en analizador)
+   const [periodoSegundosAnalizador, setPeriodoSegundosAnalizador] =
+      useState("60");
+
+   // Estado del test de conexión (separado por origen)
+   const [isTestingRele, setIsTestingRele] = useState(false);
+   const [testErrorRele, setTestErrorRele] = useState("");
+   const [testRowsRele, setTestRowsRele] = useState([]); // [{index,address,value}]
+
+   const [isTestingAnalizador, setIsTestingAnalizador] = useState(false);
+   const [testErrorAnalizador, setTestErrorAnalizador] = useState("");
+   const [testRowsAnalizador, setTestRowsAnalizador] = useState([]);
 
    // === Cargar datos al abrir ===
    useEffect(() => {
@@ -95,7 +104,6 @@ const NuevoAlimentadorModal = ({
                : "60"
          );
 
-         // ANALIZADOR sin defaults raros
          setAnalizador({
             ip: initialData.analizador?.ip || "",
             puerto:
@@ -140,33 +148,37 @@ const NuevoAlimentadorModal = ({
          setPeriodoSegundosAnalizador("60");
       }
 
-      // reset estado de test
-      setIsTesting(false);
-      setTestError("");
-      setTestRows([]);
+      // reset estado de tests
+      setIsTestingRele(false);
+      setTestErrorRele("");
+      setTestRowsRele([]);
+
+      setIsTestingAnalizador(false);
+      setTestErrorAnalizador("");
+      setTestRowsAnalizador([]);
    }, [abierto, initialData]);
 
    // si el modal no está abierto, no renderizamos nada
    if (!abierto) return null;
 
-   // === TEST CONEXIÓN (simulado / o backend real) ===
-   const handleTestConexion = async () => {
+   // === TEST CONEXIÓN RELÉ ===
+   const handleTestConexionRele = async () => {
       const ip = rele.ip.trim();
       const puerto = Number(rele.puerto);
       const inicio = Number(rele.indiceInicial);
       const cantidad = Number(rele.cantRegistros);
 
       if (!ip || !puerto || isNaN(inicio) || isNaN(cantidad) || cantidad <= 0) {
-         setTestError(
+         setTestErrorRele(
             "Completa IP, puerto, índice inicial y cantidad de registros antes de probar."
          );
-         setTestRows([]);
+         setTestRowsRele([]);
          return;
       }
 
-      setIsTesting(true);
-      setTestError("");
-      setTestRows([]);
+      setIsTestingRele(true);
+      setTestErrorRele("");
+      setTestRowsRele([]);
 
       try {
          const fetched = await leerRegistrosModbus({
@@ -176,15 +188,54 @@ const NuevoAlimentadorModal = ({
             cantRegistros: cantidad,
          });
 
-         setTestRows(fetched || []);
+         setTestRowsRele(fetched || []);
       } catch (err) {
          console.error(err);
-         setTestError(
+         setTestErrorRele(
             err?.message || "Error de red o al intentar leer los registros."
          );
-         setTestRows([]);
+         setTestRowsRele([]);
       } finally {
-         setIsTesting(false);
+         setIsTestingRele(false);
+      }
+   };
+
+   // === TEST CONEXIÓN ANALIZADOR ===
+   const handleTestConexionAnalizador = async () => {
+      const ip = analizador.ip.trim();
+      const puerto = Number(analizador.puerto);
+      const inicio = Number(analizador.indiceInicial);
+      const cantidad = Number(analizador.cantRegistros);
+
+      if (!ip || !puerto || isNaN(inicio) || isNaN(cantidad) || cantidad <= 0) {
+         setTestErrorAnalizador(
+            "Completa IP, puerto, índice inicial y cantidad de registros antes de probar."
+         );
+         setTestRowsAnalizador([]);
+         return;
+      }
+
+      setIsTestingAnalizador(true);
+      setTestErrorAnalizador("");
+      setTestRowsAnalizador([]);
+
+      try {
+         const fetched = await leerRegistrosModbus({
+            ip,
+            puerto,
+            indiceInicial: inicio,
+            cantRegistros: cantidad,
+         });
+
+         setTestRowsAnalizador(fetched || []);
+      } catch (err) {
+         console.error(err);
+         setTestErrorAnalizador(
+            err?.message || "Error de red o al intentar leer los registros."
+         );
+         setTestRowsAnalizador([]);
+      } finally {
+         setIsTestingAnalizador(false);
       }
    };
 
@@ -238,16 +289,48 @@ const NuevoAlimentadorModal = ({
       }
    };
 
-   // === Qué filas mostramos en la tabla ===
-   // Si está midiendo y el padre nos manda registros en vivo → usar esos.
-   // Si no, mostramos el resultado del último TEST CONEXIÓN.
-   const rowsToShow =
-      isMeasuring && registros && registros.length > 0 ? registros : testRows;
+   // === Derivados según pestaña activa ===
+   const isTabRele = tab === "rele";
 
-   const mensajeTabla =
-      isMeasuring && registros && registros.length > 0
-         ? `Medición en curso. Registros en vivo: ${registros.length}`
-         : `Test correcto. Registros leídos: ${testRows.length}`;
+   const isTesting = isTabRele ? isTestingRele : isTestingAnalizador;
+   const testError = isTabRele ? testErrorRele : testErrorAnalizador;
+
+   const rowsToShow = isTabRele
+      ? isMeasuringRele && registrosRele && registrosRele.length > 0
+         ? registrosRele
+         : testRowsRele
+      : isMeasuringAnalizador &&
+        registrosAnalizador &&
+        registrosAnalizador.length > 0
+      ? registrosAnalizador
+      : testRowsAnalizador;
+
+   const mensajeTabla = isTabRele
+      ? isMeasuringRele && registrosRele && registrosRele.length > 0
+         ? `Medición en curso. Registros en vivo: ${registrosRele.length}`
+         : `Test correcto. Registros leídos: ${testRowsRele.length}`
+      : isMeasuringAnalizador &&
+        registrosAnalizador &&
+        registrosAnalizador.length > 0
+      ? `Medición en curso. Registros en vivo: ${registrosAnalizador.length}`
+      : `Test correcto. Registros leídos: ${testRowsAnalizador.length}`;
+
+   const handleTestClick = () => {
+      if (isTabRele) handleTestConexionRele();
+      else handleTestConexionAnalizador();
+   };
+
+   const handleToggleMedicionClick = () => {
+      if (isTabRele) {
+         onToggleMedicionRele && onToggleMedicionRele();
+      } else {
+         onToggleMedicionAnalizador && onToggleMedicionAnalizador();
+      }
+   };
+
+   const estaMidiendo = isTabRele ? isMeasuringRele : isMeasuringAnalizador;
+   const tieneToggle =
+      isTabRele ? !!onToggleMedicionRele : !!onToggleMedicionAnalizador;
 
    return (
       <div className="alim-modal-overlay">
@@ -408,9 +491,9 @@ const NuevoAlimentadorModal = ({
                               Number(periodoSegundos) > 0 &&
                               Number(periodoSegundos) < 60 && (
                                  <p className="alim-warning">
-                                    ⚠️ Periodos menores a 60&nbsp;s pueden
+                                    ⚠️ Periodos menores a 60&nbsp;(s) pueden
                                     recargar el sistema y la red de
-                                    comunicaciones.
+                                    comunicaciones. ⚠️
                                  </p>
                               )}
                         </div>
@@ -503,16 +586,17 @@ const NuevoAlimentadorModal = ({
                                  placeholder="Ej: 60"
                                  min={1}
                               />
-
-                              {periodoSegundosAnalizador &&
-                                 Number(periodoSegundosAnalizador) > 0 &&
-                                 Number(periodoSegundosAnalizador) < 60 && (
-                                    <p className="alim-warning">
-                                       Periodos menores a 60 s pueden recargar
-                                       el sistema y la red de comunicaciones.
-                                    </p>
-                                 )}
                            </label>
+
+                           {periodoSegundosAnalizador &&
+                              Number(periodoSegundosAnalizador) > 0 &&
+                              Number(periodoSegundosAnalizador) < 60 && (
+                                 <p className="alim-warning">
+                                    ⚠️ Periodos menores a 60&nbsp;(s) pueden
+                                    recargar el sistema y la red de
+                                    comunicaciones. ⚠️
+                                 </p>
+                              )}
                         </div>
                      )}
 
@@ -521,7 +605,7 @@ const NuevoAlimentadorModal = ({
                         <button
                            type="button"
                            className="alim-test-btn"
-                           onClick={handleTestConexion}
+                           onClick={handleTestClick}
                            disabled={isTesting}
                         >
                            {isTesting ? "Probando..." : "Test conexión"}
@@ -531,16 +615,14 @@ const NuevoAlimentadorModal = ({
                            type="button"
                            className={
                               "alim-test-btn" +
-                              (isMeasuring
+                              (estaMidiendo
                                  ? " alim-test-btn-stop"
                                  : " alim-test-btn-secondary")
                            }
-                           onClick={() =>
-                              onToggleMedicion && onToggleMedicion()
-                           }
-                           disabled={isTesting || !onToggleMedicion}
+                           onClick={handleToggleMedicionClick}
+                           disabled={isTesting || !tieneToggle}
                         >
-                           {isMeasuring
+                           {estaMidiendo
                               ? "Detener medición"
                               : "Iniciar medición"}
                         </button>
