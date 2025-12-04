@@ -94,7 +94,8 @@
 .alim-cards-grid {
    display: flex;
    flex-wrap: wrap;
-   gap: 1.5rem;
+   row-gap: 1.8rem;
+   column-gap: 2.6rem;
 }
 
 /* Tarjeta "+" para crear alimentador */

@@ -119,7 +119,7 @@ const resolverTituloLado = (sideDesign) => {
 };
 
 // Calcula los valores para 1-4 boxes de un lado de la tarjeta
-// Devuelve: { titulo: string, boxes: [{ etiqueta, valor }] }
+// Devuelve: { titulo: string, boxes: [{ etiqueta, valor, enabled, origen }] }
 const calcularValoresLadoTarjeta = (registrosPorOrigen, sideDesign) => {
 	if (!sideDesign) {
 		return {
@@ -169,11 +169,18 @@ const calcularValoresLadoTarjeta = (registrosPorOrigen, sideDesign) => {
 			}
 		}
 
-		boxesSalida.push({ etiqueta, valor: valorMostrado });
+		boxesSalida.push({
+			etiqueta,
+			valor: valorMostrado,
+			enabled: !!cfg.enabled,
+			origen: cfg.origen || "rele",
+		});
 	}
 
 	return { titulo, boxes: boxesSalida };
 };
+
+
 
 const Alimentadores = () => {
 	const DEFAULT_MAIN_BG = "#e5e7eb";
@@ -803,27 +810,48 @@ const Alimentadores = () => {
 					</div>
 				) : (
 					<div className="alim-cards-grid">
-						{puestoSeleccionado?.alimentadores.map((a) => (
-							<AlimentadorCard
-								key={a.id}
-								nombre={a.nombre}
-								color={a.color}
-								onConfigClick={() =>
-									abrirModalEditarAlim(puestoSeleccionado.id, a)
-								}
-								onMapClick={() =>
-									abrirModalMapeo(puestoSeleccionado.id, a)
-								}
-								topSide={lecturas[a.id]?.parteSuperior}
-								bottomSide={lecturas[a.id]?.parteInferior}
-								draggable={true}
-								isDragging={dragAlimId === a.id}
-								onDragStart={() => handleDragStartAlim(a.id)}
-								onDragOver={handleDragOverAlim}
-								onDrop={() => handleDropAlim(a.id)}
-								onDragEnd={handleDragEndAlim}
-							/>
-						))}
+						{puestoSeleccionado?.alimentadores.map((a) => {
+							const mideRele = !!medicionesActivas[a.id]?.rele;
+							const mideAnalizador = !!medicionesActivas[a.id]?.analizador;
+
+							const periodoRele =
+								a.periodoSegundos && a.periodoSegundos > 0
+									? a.periodoSegundos
+									: 60;
+
+							const periodoAnalizador =
+								a.analizador?.periodoSegundos &&
+									a.analizador.periodoSegundos > 0
+									? a.analizador.periodoSegundos
+									: 60;
+
+							return (
+								<AlimentadorCard
+									key={a.id}
+									nombre={a.nombre}
+									color={a.color}
+									onConfigClick={() =>
+										abrirModalEditarAlim(puestoSeleccionado.id, a)
+									}
+									onMapClick={() =>
+										abrirModalMapeo(puestoSeleccionado.id, a)
+									}
+									topSide={lecturas[a.id]?.parteSuperior}
+									bottomSide={lecturas[a.id]?.parteInferior}
+									draggable={true}
+									isDragging={dragAlimId === a.id}
+									onDragStart={() => handleDragStartAlim(a.id)}
+									onDragOver={handleDragOverAlim}
+									onDrop={() => handleDropAlim(a.id)}
+									onDragEnd={handleDragEndAlim}
+									/* NUEVO: info para el borde-progress */
+									mideRele={mideRele}
+									mideAnalizador={mideAnalizador}
+									periodoRele={periodoRele}
+									periodoAnalizador={periodoAnalizador}
+								/>
+							);
+						})}
 
 						<button
 							type="button"
