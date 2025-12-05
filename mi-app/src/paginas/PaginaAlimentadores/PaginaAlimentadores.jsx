@@ -1,5 +1,5 @@
 // src/paginas/PaginaAlimentadores/PaginaAlimentadores.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PaginaAlimentadores.css";
 import TarjetaAlimentador from "./componentes/tarjetas/TarjetaAlimentador.jsx";
@@ -278,26 +278,33 @@ const PaginaAlimentadores = () => {
 	};
 
 	// Recalcular valores cuando cambien los registros
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!puestoSeleccionado) return;
 
-		const nuevasLecturas = {};
+		setLecturas(() => {
+			const nuevo = {};
 
-		puestoSeleccionado.alimentadores.forEach((alim) => {
-			const regsDelAlim = registrosEnVivo[alim.id];
-			if (!regsDelAlim) return;
+			puestoSeleccionado.alimentadores.forEach((alim) => {
+				// Puede ser null si todavía no medimos nada
+				const regsDelAlim = registrosEnVivo[alim.id] || null;
 
-			const diseño = obtenerDiseñoTarjeta(alim.mapeoMediciones);
+				// Usa el mapeo guardado (o el diseño por defecto si no hay)
+				const diseño = obtenerDiseñoTarjeta(alim.mapeoMediciones);
 
-			nuevasLecturas[alim.id] = {
-				parteSuperior: calcularValoresLadoTarjeta(regsDelAlim, diseño.superior),
-				parteInferior: calcularValoresLadoTarjeta(regsDelAlim, diseño.inferior),
-			};
+				const parteSuperior = calcularValoresLadoTarjeta(
+					regsDelAlim,
+					diseño.superior
+				);
+				const parteInferior = calcularValoresLadoTarjeta(
+					regsDelAlim,
+					diseño.inferior
+				);
+
+				nuevo[alim.id] = { parteSuperior, parteInferior };
+			});
+
+			return nuevo;
 		});
-
-		if (Object.keys(nuevasLecturas).length > 0) {
-			setLecturas((prev) => ({ ...prev, ...nuevasLecturas }));
-		}
 	}, [registrosEnVivo, puestoSeleccionado]);
 
 	// ===== DATOS PARA MODALES =====
