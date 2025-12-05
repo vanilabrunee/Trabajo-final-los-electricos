@@ -1,6 +1,8 @@
 /* src/paginas/PaginaAlimentadores/PaginaAlimentadores.css */
 
-/* Contenedor principal de la página */
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
 .alim-page {
 	min-height: 100vh;
 	background-color: #f5f7fb;
@@ -11,7 +13,34 @@
 	color: #1e293b;
 }
 
-/* Barra de navegación superior */
+.alim-main {
+	flex: 1;
+	padding: 1.5rem;
+}
+
+/* Grid de tarjetas en el main */
+.alim-cards-grid {
+	display: flex;
+	flex-wrap: wrap;
+	row-gap: 1.8rem;
+	column-gap: 2.4rem;
+}
+
+/* Vista algo más compacta en pantallas chicas/medianas */
+@media (max-width: 1366px) {
+	.alim-main {
+		padding: 1rem 0.75rem;
+	}
+
+	.alim-cards-grid {
+		justify-content: center; /* centramos las cards */
+		column-gap: 1.4rem;
+	}
+}
+
+/* =========================================================
+   NAVBAR (DESKTOP)
+   ========================================================= */
 .alim-navbar {
 	display: flex;
 	justify-content: space-between;
@@ -22,9 +51,20 @@
 	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
 }
 
+.alim-navbar-left {
+	display: flex;
+	flex-direction: column;
+}
+
 .alim-title {
 	margin: 0;
 	font-size: 1.3rem;
+}
+
+.alim-current-puesto {
+	margin-top: 0.15rem;
+	font-size: 0.9rem;
+	color: #e5e7eb;
 }
 
 /* Contenedor de botones de la nav */
@@ -48,7 +88,70 @@
 	gap: 0.75rem; /* más juntitos entre sí */
 }
 
-/* Botones de puesto */
+/* Botón menú: oculto por defecto (solo se usa en modo compacto) */
+.alim-navbar-menu-btn {
+	display: none;
+	border: none;
+	background: transparent;
+	color: #e5e7eb;
+	font-size: 1.4rem;
+	cursor: pointer;
+}
+
+/* =========================================================
+   NAVBAR (MODO COMPACTO)
+   ========================================================= */
+@media (max-width: 900px) {
+	/* El contenedor principal del nav pasa a modo centrado */
+	.alim-navbar {
+		justify-content: center;
+	}
+
+	.alim-navbar-compact {
+		justify-content: center;
+		position: relative;
+	}
+
+	/* Texto centrado con el nombre del puesto */
+	.alim-navbar-compact-title {
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		text-align: center;
+		width: 100%;
+	}
+
+	/* Mostramos el botón hamburguesa y lo posicionamos a la izquierda */
+	.alim-navbar-menu-btn {
+		display: block;              /* 👈 antes no lo activábamos */
+		background: none;
+		border: none;
+		color: #e5e7eb;
+		font-size: 1.3rem;
+		cursor: pointer;
+	}
+
+	.alim-navbar-compact .alim-navbar-menu-btn {
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	/* Ocultamos título grande y zona de botones de la derecha */
+	.alim-title {
+		display: none;
+	}
+
+	.alim-nav-buttons {
+		display: none;
+	}
+}
+
+/* =========================================================
+   BOTONES GENERALES
+   ========================================================= */
+
+/* Botones de puesto / genéricos */
 .alim-btn {
 	border: none;
 	border-radius: 10px;
@@ -60,6 +163,9 @@
 	color: #022c22;
 	transition: transform 0.1s ease, box-shadow 0.1s ease,
 		background-color 0.15s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .alim-btn:hover {
@@ -73,7 +179,13 @@
 	box-shadow: none;
 }
 
-/* Botón "+" para agregar puesto */
+/* Botón de puesto activo */
+.alim-btn-active {
+	background-color: #0ea5e9;
+	color: #0f172a;
+}
+
+/* Botón "+" para agregar puesto (nav y drawer) */
 .alim-btn-add {
 	background-color: transparent;
 	color: #e5e7eb;
@@ -81,11 +193,6 @@
 	width: 2.5rem;
 	height: 2.5rem;
 	padding: 0;
-
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-
 	font-size: 2rem;
 	line-height: 1;
 }
@@ -101,33 +208,37 @@
 	transform: none;
 }
 
-/* Área de contenido principal */
-.alim-main {
-	flex: 1;
-	padding: 1.5rem;
+/* Botón salir */
+.alim-btn-exit {
+	border: none;
+	border-radius: 10px;
+	padding: 0.45rem 1.2rem;
+	font-size: 0.9rem;
+	font-weight: 600;
+	cursor: pointer;
+	background-color: #ef4444;
+	color: #f9fafb;
+	transition: background-color 0.15s ease, transform 0.1s ease,
+		box-shadow 0.1s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
-/* Grid de tarjetas en el main */
-.alim-cards-grid {
-	display: flex;
-	flex-wrap: wrap;
-	row-gap: 1.8rem;
-	column-gap: 2.4rem;
+.alim-btn-exit:hover {
+	background-color: #dc2626;
+	box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+	transform: translateY(-1px);
 }
 
-/* ----- VISTA MÓVIL / TABLET ----- */
-@media (max-width: 1366px) {
-	.alim-main {
-		padding: 1rem 0.75rem;      /* opcional: un poco menos de padding lateral */
-	}
-
-	.alim-cards-grid {
-		justify-content: center;    /* 👉 centramos las cards */
-		column-gap: 1.4rem;         /* opcional: un gap un poco menor en móvil */
-	}
+.alim-btn-exit:active {
+	transform: translateY(0);
+	box-shadow: none;
 }
 
-/* Tarjeta "+" para crear alimentador */
+/* =========================================================
+   TARJETA "+" DE ALIMENTADORES
+   ========================================================= */
 .alim-card-add {
 	border: 1px dashed #374151;
 	background-color: #111827;
@@ -156,24 +267,9 @@
 	text-transform: uppercase;
 }
 
-/* Botón de puesto activo */
-.alim-btn-active {
-	background-color: #0ea5e9;
-	color: #0f172a;
-}
-
-/* Subtítulo arriba del grid con el nombre del puesto */
-.alim-subtitle {
-	margin: 0 0 1rem;
-	font-size: 1.05rem;
-	color: #334155;
-}
-
-.alim-subtitle span {
-	font-weight: 600;
-}
-
-/* Mensaje cuando no hay puestos creados */
+/* =========================================================
+   ESTADOS VACÍOS
+   ========================================================= */
 .alim-empty {
 	height: 100%;
 	display: flex;
@@ -185,23 +281,121 @@
 	text-align: center;
 }
 
-/* Mensaje cuando el puesto seleccionado no tiene alimentadores */
 .alim-empty-state {
 	margin-bottom: 1rem;
 	color: #020202;
 	font-size: 0.95rem;
 }
 
-/* ===== MODAL EDITAR PUESTOS ===== */
+/* =========================================================
+   DRAWER LATERAL
+   ========================================================= */
+.alim-drawer-overlay {
+	position: fixed;
+	inset: 0;
+	background-color: rgba(15, 23, 42, 0.45);
+	display: flex;
+	align-items: stretch;
+	justify-content: flex-start;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.22s ease;
+	z-index: 60;
+}
 
-/* Contenedor del modal */
+.alim-drawer-overlay.alim-drawer-open {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.alim-drawer {
+	width: 260px;
+	max-width: 80vw;
+	background-color: #020617;
+	color: #e5e7eb;
+	padding: 1.4rem 1.1rem;
+	box-shadow: 8px 0 25px rgba(15, 23, 42, 0.6);
+	transform: translateX(-100%);
+	transition: transform 0.22s ease-out;
+}
+
+.alim-drawer-overlay.alim-drawer-open .alim-drawer {
+	transform: translateX(0);
+}
+
+.alim-drawer-header {
+	margin-bottom: 1rem;
+}
+
+.alim-drawer-title {
+	margin: 0;
+	font-size: 1.1rem;
+}
+
+.alim-drawer-subtitle {
+	margin: 0.25rem 0 0;
+	font-size: 0.85rem;
+	color: #9ca3af;
+}
+
+.alim-drawer-section {
+	margin-top: 1.1rem;
+}
+
+.alim-drawer-section-title {
+	margin: 0 0 0.5rem;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #9ca3af;
+}
+
+.alim-drawer-puestos,
+.alim-drawer-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+/* Botones dentro del drawer: ocupan todo el ancho */
+.alim-drawer .alim-btn,
+.alim-drawer .alim-btn-exit {
+	width: 100%;
+	justify-content: center;
+}
+
+/* Botón "+ Nuevo puesto" dentro del drawer */
+.alim-drawer-btn-add {
+	background-color: transparent;
+	border: 1px dashed #9ca3af;
+	color: #e5e7eb;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	font-weight: 500;
+}
+
+.alim-drawer-btn-add:hover {
+	background-color: rgba(148, 163, 184, 0.2);
+}
+
+.alim-drawer-btn-add-icon {
+	font-size: 1.1rem;
+	line-height: 1;
+	transform: translateY(-1px);
+}
+
+/* =========================================================
+   MODALES (EDITAR / NUEVO PUESTO)
+   ========================================================= */
 .alim-modal {
 	border-radius: 18px;
 	padding: 1.4rem 1.8rem;
 	box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
 }
 
-/* Contenedor de la lista de puestos dentro del modal */
+/* Lista de puestos a editar */
 .alim-edit-list {
 	display: flex;
 	flex-direction: column;
@@ -209,7 +403,7 @@
 	margin-top: 0.9rem;
 }
 
-/* Cada fila se ve como una tarjetita */
+/* Cada fila de edición */
 .alim-edit-row {
 	display: flex;
 	align-items: center;
@@ -217,7 +411,7 @@
 	padding: 0.6rem 0.8rem;
 	border-radius: 14px;
 	background: #f9fafb;
-	border: 1px solid #cbd5f5; /* borde más marcado */
+	border: 1px solid #cbd5f5;
 	box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
 }
 
@@ -264,7 +458,7 @@
 	white-space: nowrap;
 }
 
-/* Input color redondeado tipo “chip” */
+/* Input color redondeado tipo chip */
 .alim-edit-color-input {
 	-webkit-appearance: none;
 	appearance: none;
@@ -338,7 +532,7 @@
 	background-color: #d1d5db;
 }
 
-/* Guardar: celeste como el resto de la app */
+/* Guardar: celeste */
 .alim-modal-btn-guardar {
 	background-color: #0ea5e9;
 	color: #ffffff;
@@ -347,28 +541,4 @@
 
 .alim-modal-btn-guardar:hover {
 	background-color: #0284c7;
-}
-
-.alim-btn-exit {
-	border: none;
-	border-radius: 10px;
-	padding: 0.45rem 1.2rem;
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	background-color: #ef4444;
-	color: #f9fafb;
-	transition: background-color 0.15s ease, transform 0.1s ease,
-		box-shadow 0.1s ease;
-}
-
-.alim-btn-exit:hover {
-	background-color: #dc2626;
-	box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
-	transform: translateY(-1px);
-}
-
-.alim-btn-exit:active {
-	transform: translateY(0);
-	box-shadow: none;
 }
