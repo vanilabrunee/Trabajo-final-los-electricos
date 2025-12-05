@@ -64,9 +64,11 @@
 ```
 mi-app/
 ├─ src/
+│  │
 │  ├─ App.jsx                          # Rutas: login, registro, alimentadores
 │  │
 │  ├─ paginas/PaginaAlimentadores/
+│  │  │
 │  │  ├─ PaginaAlimentadores.jsx       # Monta el proveedor de datos y la vista
 │  │  │
 │  │  ├─ contexto/ContextoAlimentadores.jsx  # Estado central de puestos/mediciones
@@ -88,6 +90,7 @@ mi-app/
 │  │  └─ constantes/ (colores, títulos)
 │  │
 │  └─ assets/ (iconos e imágenes)
+│ 
 └─ package.json
 ```
 
@@ -105,11 +108,11 @@ npm install
 
 ## ▶️ Uso
 
-1) (Opcional) Levanta la base temporal con json-server:
+1) Levanta la base temporal con json-server:
 ```bash
 npm run db
 ```
-2) (Opcional) Levanta el backend simulado:
+2) Levanta el backend simulado:
 ```bash
 npm run backend
 ```
@@ -117,7 +120,7 @@ npm run backend
 ```bash
 npm run dev
 ```
-Abre la URL indicada por la consola (por defecto `http://localhost:5173`).  
+Abre la URL indicada por la consola (por defecto `http://localhost:5174`).  
 Crea un puesto, agrega alimentadores, configura relé/analizador y empieza las mediciones. El borde de los boxes se anima según el periodo configurado.
 
 ---
