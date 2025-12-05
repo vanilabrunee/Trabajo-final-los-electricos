@@ -65,17 +65,28 @@
 mi-app/
 ├─ src/
 │  ├─ App.jsx                          # Rutas: login, registro, alimentadores
+│  │
 │  ├─ paginas/PaginaAlimentadores/
 │  │  ├─ PaginaAlimentadores.jsx       # Monta el proveedor de datos y la vista
+│  │  │
 │  │  ├─ contexto/ContextoAlimentadores.jsx  # Estado central de puestos/mediciones
+│  │  │
 │  │  ├─ componentes/
+│  │  │  │
 │  │  │  ├─ layout/VistaAlimentadores.jsx    # Vista principal con modales y drag-drop
+│  │  │  │
 │  │  │  ├─ tarjetas/ (TarjetaAlimentador, GrupoMedidores, CajaMedicion)
+│  │  │  │
 │  │  │  ├─ modales/ (Configuración, Mapeo, Puestos)
+│  │  │  │
 │  │  │  └─ navegacion/ (barra superior y menú lateral)
+│  │  │
 │  │  ├─ hooks/ (usarPuestos, usarMediciones, usarArrastrarSoltar, useGestorModales)
+│  │  │
 │  │  ├─ utilidades/ (calculosMediciones, almacenamiento, clienteModbus)
+│  │  │
 │  │  └─ constantes/ (colores, títulos)
+│  │
 │  └─ assets/ (iconos e imágenes)
 └─ package.json
 ```
