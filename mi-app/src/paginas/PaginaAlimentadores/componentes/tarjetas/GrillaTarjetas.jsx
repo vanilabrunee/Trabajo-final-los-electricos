@@ -21,6 +21,7 @@ const GrillaTarjetas = ({
 	onAgregarNuevo,
 	estaMidiendo,
 	obtenerTimestampInicio,
+	obtenerContadorLecturas,
 }) => {
 	return (
 		<div className="alim-cards-grid">
@@ -50,6 +51,8 @@ const GrillaTarjetas = ({
 						periodoAnalizador={alim.analizador?.periodoSegundos || 60}
 						timestampInicioRele={obtenerTimestampInicio(alim.id, "rele")}
 						timestampInicioAnalizador={obtenerTimestampInicio(alim.id, "analizador")}
+						contadorRele={obtenerContadorLecturas(alim.id, "rele")}
+						contadorAnalizador={obtenerContadorLecturas(alim.id, "analizador")}
 					/>
 				);
 			})}

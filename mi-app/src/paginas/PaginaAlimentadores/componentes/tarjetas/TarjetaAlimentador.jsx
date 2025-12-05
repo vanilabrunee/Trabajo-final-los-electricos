@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./TarjetaAlimentador.css";
 import configIcon from "../../../../assets/imagenes/Config_Icon.png";
 import mapIcon from "../../../../assets/imagenes/Mapeo_icon.png";
@@ -24,19 +24,44 @@ const TarjetaAlimentador = ({
 	periodoAnalizador = 60,
 	timestampInicioRele = null,
 	timestampInicioAnalizador = null,
+	contadorRele = 0,
+	contadorAnalizador = 0,
 }) => {
-	// Estado para forzar actualización de delays cuando cambian las mediciones
-	const [animationKey, setAnimationKey] = useState(0);
+	// Control local de animaciones de borde: solo se activan tras recibir una lectura
+	const [mostrarProgresoRele, setMostrarProgresoRele] = useState(false);
+	const [mostrarProgresoAnalizador, setMostrarProgresoAnalizador] = useState(false);
+	const ultimoContadorReleRef = useRef(contadorRele);
+	const ultimoContadorAnalizadorRef = useRef(contadorAnalizador);
 
-	// Recalcular key cuando cambian los timestamps o estados de medición
+	// Si se cambia de puesto o se detiene la medición, reseteamos y esperamos una nueva lectura
 	useEffect(() => {
-		setAnimationKey(prev => prev + 1);
-	}, [timestampInicioRele, timestampInicioAnalizador, mideRele, mideAnalizador]);
+		if (!mideRele) {
+			setMostrarProgresoRele(false);
+			ultimoContadorReleRef.current = contadorRele;
+			return;
+		}
+
+		if (contadorRele !== ultimoContadorReleRef.current) {
+			ultimoContadorReleRef.current = contadorRele;
+			setMostrarProgresoRele(contadorRele > 0);
+		}
+	}, [contadorRele, mideRele]);
+
+	useEffect(() => {
+		if (!mideAnalizador) {
+			setMostrarProgresoAnalizador(false);
+			ultimoContadorAnalizadorRef.current = contadorAnalizador;
+			return;
+		}
+
+		if (contadorAnalizador !== ultimoContadorAnalizadorRef.current) {
+			ultimoContadorAnalizadorRef.current = contadorAnalizador;
+			setMostrarProgresoAnalizador(contadorAnalizador > 0);
+		}
+	}, [contadorAnalizador, mideAnalizador]);
 
 	// ===== Helpers para armar cada lado de la tarjeta =====
 	const buildSideDisplay = (side, tituloDefault) => {
-		// Si todavía no hay lecturas / mapeo, mantenemos el comportamiento viejo:
-		// título fijo y 3 boxes R, S, T con "--,--"
 		const defaultBoxes = ["R", "S", "T"].map((label) => ({
 			etiqueta: label,
 			valor: "--,--",
@@ -55,16 +80,11 @@ const TarjetaAlimentador = ({
 			(side.titulo && String(side.titulo).trim()) || tituloDefault;
 
 		let boxes = Array.isArray(side.boxes) ? side.boxes : [];
-
-		// Limitamos a 4 como máximo
 		boxes = boxes.slice(0, 4);
 
-		// Si por alguna razón no hay boxes, usamos los defaults
 		if (boxes.length === 0) {
 			boxes = defaultBoxes;
 		} else {
-			// Normalizamos cada box: etiqueta, valor
-			// y preservamos enabled / origen
 			boxes = boxes.map((b, idx) => ({
 				etiqueta:
 					(b?.etiqueta && String(b.etiqueta).trim()) || `Box ${idx + 1}`,
@@ -90,14 +110,52 @@ const TarjetaAlimentador = ({
 	if (isWide) clasesCard.push("alim-card-wide");
 	if (isDragging) clasesCard.push("alim-card-dragging");
 
-	// Helper para calcular el delay de animación
-	const calcularAnimationDelay = (timestamp, periodo) => {
-		if (!timestamp) return 0;
+	// Renderizar un box de medición
+	const renderBox = (box, idx, zona) => {
+		const isFromRele = box.origen === "rele" || !box.origen;
+		const isFromAnalizador = box.origen === "analizador";
 
-		const ahora = Date.now();
-		const tiempoTranscurrido = ahora - timestamp; // en milisegundos
-		const tiempoEnCiclo = tiempoTranscurrido % (periodo * 1000); // posición en el ciclo actual
-		return -(tiempoEnCiclo / 1000); // delay negativo en segundos
+		const medicionActiva =
+			box.enabled &&
+			((isFromRele && mideRele) || (isFromAnalizador && mideAnalizador));
+
+		const progresoHabilitado =
+			(isFromRele && mostrarProgresoRele) ||
+			(isFromAnalizador && mostrarProgresoAnalizador);
+
+		const equipo = isFromAnalizador ? 'analizador' : 'rele';
+		const dur = isFromAnalizador ? periodoAnalizador : periodoRele;
+		const contador = isFromAnalizador ? contadorAnalizador : contadorRele;
+
+		let valueClass = "alim-card-meter-value";
+
+		if (medicionActiva && progresoHabilitado) {
+			if (isFromRele) {
+				valueClass += " alim-meter-progress-rele";
+			} else if (isFromAnalizador) {
+				valueClass += " alim-meter-progress-analizador";
+			}
+		}
+
+		// Key que incluye el contador de lecturas
+		// Esto hace que React destruya y recree el elemento cada vez que llega un dato nuevo
+		// independientemente de si el valor cambió o no
+		const valueKey = `${zona}-${idx}-${equipo}-c${contador}`;
+
+		return (
+			<div key={idx} className="alim-card-meter">
+				<span className="alim-card-meter-phase">{box.etiqueta}</span>
+				<span
+					key={valueKey}
+					className={valueClass}
+					style={medicionActiva && progresoHabilitado ? {
+						[isFromRele ? "--rw-progress-duration-rele" : "--rw-progress-duration-analizador"]: `${dur}s`
+					} : undefined}
+				>
+					{box.valor ?? "--,--"}
+				</span>
+			</div>
+		);
 	};
 
 	return (
@@ -148,102 +206,15 @@ const TarjetaAlimentador = ({
 				<div className="alim-card-section">
 					<h3 className="alim-card-section-title">{sup.titulo}</h3>
 					<div className="alim-card-meters">
-						{sup.boxes.map((box, idx) => {
-							const isFromRele = box.origen === "rele" || !box.origen; // por defecto relé
-							const isFromAnalizador = box.origen === "analizador";
-
-							const medicionActiva =
-								box.enabled &&
-								((isFromRele && mideRele) || (isFromAnalizador && mideAnalizador));
-
-							const dur = isFromAnalizador ? periodoAnalizador : periodoRele;
-							const timestamp = isFromAnalizador ? timestampInicioAnalizador : timestampInicioRele;
-
-							let valueClass = "alim-card-meter-value";
-							let valueStyle = {};
-
-							if (medicionActiva) {
-								const animationDelay = calcularAnimationDelay(timestamp, dur);
-
-								if (isFromRele) {
-									valueClass += " alim-meter-progress-rele";
-									valueStyle = {
-										"--rw-progress-duration-rele": `${dur}s`,
-										animationDelay: `${animationDelay}s`,
-									};
-								} else if (isFromAnalizador) {
-									valueClass += " alim-meter-progress-analizador";
-									valueStyle = {
-										"--rw-progress-duration-analizador": `${dur}s`,
-										animationDelay: `${animationDelay}s`,
-									};
-								}
-							}
-
-							// Key única para forzar re-render de la animación
-							const boxKey = `${idx}-${animationKey}-${medicionActiva ? 'active' : 'inactive'}`;
-
-							return (
-								<div key={boxKey} className="alim-card-meter">
-									<span className="alim-card-meter-phase">{box.etiqueta}</span>
-									<span className={valueClass} style={valueStyle}>
-										{box.valor ?? "--,--"}
-									</span>
-								</div>
-							);
-						})}
+						{sup.boxes.map((box, idx) => renderBox(box, idx, 'sup'))}
 					</div>
 				</div>
 
 				{/* ===== PARTE INFERIOR ===== */}
 				<div className="alim-card-section">
 					<h3 className="alim-card-section-title">{inf.titulo}</h3>
-
 					<div className="alim-card-meters">
-						{inf.boxes.map((box, idx) => {
-							const isFromRele = box.origen === "rele" || !box.origen;
-							const isFromAnalizador = box.origen === "analizador";
-
-							const medicionActiva =
-								box.enabled &&
-								((isFromRele && mideRele) || (isFromAnalizador && mideAnalizador));
-
-							const dur = isFromAnalizador ? periodoAnalizador : periodoRele;
-							const timestamp = isFromAnalizador ? timestampInicioAnalizador : timestampInicioRele;
-
-							let valueClass = "alim-card-meter-value";
-							let valueStyle = {};
-
-							if (medicionActiva) {
-								const animationDelay = calcularAnimationDelay(timestamp, dur);
-
-								if (isFromRele) {
-									valueClass += " alim-meter-progress-rele";
-									valueStyle = {
-										"--rw-progress-duration-rele": `${dur}s`,
-										animationDelay: `${animationDelay}s`,
-									};
-								} else if (isFromAnalizador) {
-									valueClass += " alim-meter-progress-analizador";
-									valueStyle = {
-										"--rw-progress-duration-analizador": `${dur}s`,
-										animationDelay: `${animationDelay}s`,
-									};
-								}
-							}
-
-							// Key única para forzar re-render de la animación
-							const boxKey = `${idx}-${animationKey}-${medicionActiva ? 'active' : 'inactive'}`;
-
-							return (
-								<div key={boxKey} className="alim-card-meter">
-									<span className="alim-card-meter-phase">{box.etiqueta}</span>
-									<span className={valueClass} style={valueStyle}>
-										{box.valor ?? "--,--"}
-									</span>
-								</div>
-							);
-						})}
+						{inf.boxes.map((box, idx) => renderBox(box, idx, 'inf'))}
 					</div>
 				</div>
 			</div>

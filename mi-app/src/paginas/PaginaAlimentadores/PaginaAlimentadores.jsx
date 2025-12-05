@@ -67,6 +67,7 @@ const PaginaAlimentadores = () => {
 		obtenerRegistros,
 		estaMidiendo,
 		obtenerTimestampInicio,
+		obtenerContadorLecturas,
 	} = usarMediciones();
 
 	const {
@@ -370,6 +371,7 @@ const PaginaAlimentadores = () => {
 							onAgregarNuevo={abrirModalNuevoAlim}
 							estaMidiendo={estaMidiendo}
 							obtenerTimestampInicio={obtenerTimestampInicio}
+							obtenerContadorLecturas={obtenerContadorLecturas}
 						/>
 					</>
 				)}

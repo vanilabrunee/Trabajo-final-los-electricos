@@ -20,6 +20,10 @@ export const usarMediciones = () => {
 	// Estructura: { [alimId]: { rele: timestamp, analizador: timestamp } }
 	const [timestampsInicio, setTimestampsInicio] = useState({});
 
+	// Contador de lecturas (se incrementa con cada nueva inserción de datos)
+	// Estructura: { [alimId]: { rele: number, analizador: number } }
+	const [contadorLecturas, setContadorLecturas] = useState({});
+
 	// Timers de setInterval (no genera re-render, por eso useRef)
 	// Estructura: { [alimId]: { rele: timerId, analizador: timerId } }
 	const timersRef = useRef({});
@@ -89,6 +93,15 @@ export const usarMediciones = () => {
 			[alimId]: {
 				...(anteriores[alimId] || {}),
 				[equipo]: ahora,
+			},
+		}));
+
+		// Incrementar contador de lecturas
+		setContadorLecturas((anteriores) => ({
+			...anteriores,
+			[alimId]: {
+				...(anteriores[alimId] || {}),
+				[equipo]: (anteriores[alimId]?.[equipo] || 0) + 1,
 			},
 		}));
 	};
@@ -163,7 +176,7 @@ export const usarMediciones = () => {
 				[equipo]: true,
 			},
 		}));
-	
+
 	};
 
 	/**
@@ -259,6 +272,17 @@ export const usarMediciones = () => {
 	};
 
 	/**
+	 * Obtiene el contador de lecturas de una medición
+	 * 
+	 * @param {number} alimId - ID del alimentador
+	 * @param {string} equipo - "rele" o "analizador"
+	 * @returns {number} Contador de lecturas
+	 */
+	const obtenerContadorLecturas = (alimId, equipo) => {
+		return contadorLecturas[alimId]?.[equipo] || 0;
+	};
+
+	/**
 	 * Actualiza los registros directamente (útil para preview)
 	 * 
 	 * @param {number} alimId - ID del alimentador
@@ -286,6 +310,7 @@ export const usarMediciones = () => {
 		obtenerRegistros,
 		estaMidiendo,
 		obtenerTimestampInicio,
+		obtenerContadorLecturas,
 		actualizarRegistros,
 	};
 };
