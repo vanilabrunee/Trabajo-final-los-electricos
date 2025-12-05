@@ -63,35 +63,52 @@
 
 ```
 mi-app/
+├─ public/
+│  └─ fonts/ (BalooBhai2, ds-digi)
+│
+├─ server/
+│  └─ modbusServer.js
+│
 ├─ src/
-│  │
 │  ├─ App.jsx                          # Rutas: login, registro, alimentadores
+│  ├─ App.css
+│  ├─ main.jsx
+│  ├─ index.css
 │  │
-│  ├─ paginas/PaginaAlimentadores/
+│  ├─ assets/
+│  │  └─ imagenes/ (Config_Icon.png, Mapeo_icon.png, logo 2 rw.png)
+│  │
+│  ├─ paginas/
+│  │  ├─ PaginaLogin/
+│  │  │  ├─ PaginaLogin.jsx
+│  │  │  └─ PaginaLogin.css
 │  │  │
-│  │  ├─ PaginaAlimentadores.jsx       # Monta el proveedor de datos y la vista
+│  │  ├─ PaginaRegistro/
+│  │  │  ├─ PaginaRegistro.jsx
+│  │  │  └─ PaginaRegistro.css
 │  │  │
-│  │  ├─ contexto/ContextoAlimentadores.jsx  # Estado central de puestos/mediciones
-│  │  │
-│  │  ├─ componentes/
-│  │  │  │
-│  │  │  ├─ layout/VistaAlimentadores.jsx    # Vista principal con modales y drag-drop
-│  │  │  │
-│  │  │  ├─ tarjetas/ (TarjetaAlimentador, GrupoMedidores, CajaMedicion)
-│  │  │  │
-│  │  │  ├─ modales/ (Configuración, Mapeo, Puestos)
-│  │  │  │
-│  │  │  └─ navegacion/ (barra superior y menú lateral)
-│  │  │
-│  │  ├─ hooks/ (usarPuestos, usarMediciones, usarArrastrarSoltar, useGestorModales)
-│  │  │
-│  │  ├─ utilidades/ (calculosMediciones, almacenamiento, clienteModbus)
-│  │  │
-│  │  └─ constantes/ (colores, títulos)
+│  │  └─ PaginaAlimentadores/
+│  │     ├─ PaginaAlimentadores.jsx       # Monta el proveedor de datos y la vista
+│  │     ├─ PaginaAlimentadores.css
+│  │     │
+│  │     ├─ contexto/ (ContextoAlimentadores.jsx)
+│  │     │
+│  │     ├─ componentes/
+│  │     │  ├─ layout/ (VistaAlimentadores.jsx)
+│  │     │  ├─ tarjetas/ (TarjetaAlimentador, GrupoMedidores, CajaMedicion)
+│  │     │  ├─ modales/ (Configuración, Mapeo, Puestos)
+│  │     │  └─ navegacion/ (barra superior y menú lateral)
+│  │     │
+│  │     ├─ hooks/ (usarPuestos, usarMediciones, usarArrastrarSoltar, useGestorModales)
+│  │     ├─ utilidades/ (calculosMediciones, calculosFormulas, almacenamiento, clienteModbus)
+│  │     └─ constantes/ (colores, títulos)
 │  │
 │  └─ assets/ (iconos e imágenes)
-│ 
-└─ package.json
+│
+├─ server/modbusServer.js
+├─ db.json
+├─ package.json
+└─ vite.config.js
 ```
 
 ---
