@@ -22,7 +22,7 @@ export const obtenerListaRegistros = (registrosPorOrigen, origen) => {
  * @param {Object} mapeoMediciones - Configuración de mapeo
  * @returns {Object} Diseño con estructura { superior: {...}, inferior: {...} }
  */
-export const obtenerDiseñoTarjeta = (mapeoMediciones) => {
+export const obtenerDisenoTarjeta = (mapeoMediciones) => {
 	const diseño = mapeoMediciones?.cardDesign;
 
 	if (!diseño) return DISEÑO_TARJETA_POR_DEFECTO;

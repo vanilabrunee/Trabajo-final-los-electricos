@@ -2,6 +2,42 @@ import React, { useEffect, useRef, useState } from "react";
 import "./TarjetaAlimentador.css";
 import configIcon from "../../../../assets/imagenes/Config_Icon.png";
 import mapIcon from "../../../../assets/imagenes/Mapeo_icon.png";
+import CajaMedicion from "./CajaMedicion.jsx";
+import GrupoMedidores from "./GrupoMedidores.jsx";
+
+const construirLado = (side, tituloDefault) => {
+	const cajasPorDefecto = ["R", "S", "T"].map((label) => ({
+		etiqueta: label,
+		valor: "--,--",
+		enabled: false,
+		origen: null,
+	}));
+
+	if (!side) {
+		return {
+			titulo: tituloDefault,
+			boxes: cajasPorDefecto,
+		};
+	}
+
+	const titulo = (side.titulo && String(side.titulo).trim()) || tituloDefault;
+
+	let boxes = Array.isArray(side.boxes) ? side.boxes : [];
+	boxes = boxes.slice(0, 4);
+
+	if (boxes.length === 0) {
+		boxes = cajasPorDefecto;
+	} else {
+		boxes = boxes.map((b, idx) => ({
+			etiqueta: (b?.etiqueta && String(b.etiqueta).trim()) || `Box ${idx + 1}`,
+			valor: b?.valor == null || b.valor === "" ? "--,--" : String(b.valor),
+			enabled: !!b?.enabled,
+			origen: b?.origen || null,
+		}));
+	}
+
+	return { titulo, boxes };
+};
 
 const TarjetaAlimentador = ({
 	nombre,
@@ -17,7 +53,7 @@ const TarjetaAlimentador = ({
 	onDrop,
 	onDragEnd,
 
-	// NUEVO: info de mediciones y períodos
+	// Info de mediciones y periodos
 	mideRele = false,
 	mideAnalizador = false,
 	periodoRele = 60,
@@ -33,7 +69,7 @@ const TarjetaAlimentador = ({
 	const ultimoContadorReleRef = useRef(contadorRele);
 	const ultimoContadorAnalizadorRef = useRef(contadorAnalizador);
 
-	// Si se cambia de puesto o se detiene la medición, reseteamos y esperamos una nueva lectura
+	// Si se cambia de puesto o se detiene la medicion, reseteamos y esperamos una nueva lectura
 	useEffect(() => {
 		if (!mideRele) {
 			setMostrarProgresoRele(false);
@@ -60,48 +96,11 @@ const TarjetaAlimentador = ({
 		}
 	}, [contadorAnalizador, mideAnalizador]);
 
-	// ===== Helpers para armar cada lado de la tarjeta =====
-	const buildSideDisplay = (side, tituloDefault) => {
-		const defaultBoxes = ["R", "S", "T"].map((label) => ({
-			etiqueta: label,
-			valor: "--,--",
-			enabled: false,
-			origen: null,
-		}));
+	// Armar lados de la tarjeta
+	const sup = construirLado(topSide, "CONSUMO (A)");
+	const inf = construirLado(bottomSide, "TENSION (kV)");
 
-		if (!side) {
-			return {
-				titulo: tituloDefault,
-				boxes: defaultBoxes,
-			};
-		}
-
-		const titulo =
-			(side.titulo && String(side.titulo).trim()) || tituloDefault;
-
-		let boxes = Array.isArray(side.boxes) ? side.boxes : [];
-		boxes = boxes.slice(0, 4);
-
-		if (boxes.length === 0) {
-			boxes = defaultBoxes;
-		} else {
-			boxes = boxes.map((b, idx) => ({
-				etiqueta:
-					(b?.etiqueta && String(b.etiqueta).trim()) || `Box ${idx + 1}`,
-				valor:
-					b?.valor == null || b.valor === "" ? "--,--" : String(b.valor),
-				enabled: !!b?.enabled,
-				origen: b?.origen || null,
-			}));
-		}
-
-		return { titulo, boxes };
-	};
-
-	const sup = buildSideDisplay(topSide, "CONSUMO (A)");
-	const inf = buildSideDisplay(bottomSide, "TENSIÓN (kV)");
-
-	// detectar si algún lado tiene 4 boxes
+	// detectar si algun lado tiene 4 boxes
 	const maxBoxes = Math.max(sup.boxes.length, inf.boxes.length);
 	const isWide = maxBoxes >= 4;
 
@@ -110,53 +109,21 @@ const TarjetaAlimentador = ({
 	if (isWide) clasesCard.push("alim-card-wide");
 	if (isDragging) clasesCard.push("alim-card-dragging");
 
-	// Renderizar un box de medición
-	const renderBox = (box, idx, zona) => {
-		const isFromRele = box.origen === "rele" || !box.origen;
-		const isFromAnalizador = box.origen === "analizador";
-
-		const medicionActiva =
-			box.enabled &&
-			((isFromRele && mideRele) || (isFromAnalizador && mideAnalizador));
-
-		const progresoHabilitado =
-			(isFromRele && mostrarProgresoRele) ||
-			(isFromAnalizador && mostrarProgresoAnalizador);
-
-		const equipo = isFromAnalizador ? 'analizador' : 'rele';
-		const dur = isFromAnalizador ? periodoAnalizador : periodoRele;
-		const contador = isFromAnalizador ? contadorAnalizador : contadorRele;
-
-		let valueClass = "alim-card-meter-value";
-
-		if (medicionActiva && progresoHabilitado) {
-			if (isFromRele) {
-				valueClass += " alim-meter-progress-rele";
-			} else if (isFromAnalizador) {
-				valueClass += " alim-meter-progress-analizador";
-			}
-		}
-
-		// Key que incluye el contador de lecturas
-		// Esto hace que React destruya y recree el elemento cada vez que llega un dato nuevo
-		// independientemente de si el valor cambió o no
-		const valueKey = `${zona}-${idx}-${equipo}-c${contador}`;
-
-		return (
-			<div key={idx} className="alim-card-meter">
-				<span className="alim-card-meter-phase">{box.etiqueta}</span>
-				<span
-					key={valueKey}
-					className={valueClass}
-					style={medicionActiva && progresoHabilitado ? {
-						[isFromRele ? "--rw-progress-duration-rele" : "--rw-progress-duration-analizador"]: `${dur}s`
-					} : undefined}
-				>
-					{box.valor ?? "--,--"}
-				</span>
-			</div>
-		);
-	};
+	const renderizarCaja = (box, idx, zona) => (
+		<CajaMedicion
+			box={box}
+			indice={idx}
+			zona={zona}
+			mideRele={mideRele}
+			mideAnalizador={mideAnalizador}
+			mostrarProgresoRele={mostrarProgresoRele}
+			mostrarProgresoAnalizador={mostrarProgresoAnalizador}
+			periodoRele={periodoRele}
+			periodoAnalizador={periodoAnalizador}
+			contadorRele={contadorRele}
+			contadorAnalizador={contadorAnalizador}
+		/>
+	);
 
 	return (
 		<div
@@ -203,20 +170,20 @@ const TarjetaAlimentador = ({
 			{/* Cuerpo con los 2 bloques (superior / inferior) */}
 			<div className="alim-card-body">
 				{/* ===== PARTE SUPERIOR ===== */}
-				<div className="alim-card-section">
-					<h3 className="alim-card-section-title">{sup.titulo}</h3>
-					<div className="alim-card-meters">
-						{sup.boxes.map((box, idx) => renderBox(box, idx, 'sup'))}
-					</div>
-				</div>
+				<GrupoMedidores
+					titulo={sup.titulo}
+					boxes={sup.boxes}
+					zona="sup"
+					renderizarCaja={renderizarCaja}
+				/>
 
 				{/* ===== PARTE INFERIOR ===== */}
-				<div className="alim-card-section">
-					<h3 className="alim-card-section-title">{inf.titulo}</h3>
-					<div className="alim-card-meters">
-						{inf.boxes.map((box, idx) => renderBox(box, idx, 'inf'))}
-					</div>
-				</div>
+				<GrupoMedidores
+					titulo={inf.titulo}
+					boxes={inf.boxes}
+					zona="inf"
+					renderizarCaja={renderizarCaja}
+				/>
 			</div>
 		</div>
 	);
