@@ -102,14 +102,16 @@ const PaginaAlimentadores = () => {
 		setPuestosEditados([]);
 	};
 
-	const cambiarNombreEditado = (id, nombreNuevo) => {
+	const cambiarColorBotonEditado = (id, colorNuevo) => {
 		setPuestosEditados((prev) =>
-			prev.map((p) => (p.id === id ? { ...p, nombre: nombreNuevo } : p))
+			prev.map((p) => (p.id === id ? { ...p, color: colorNuevo } : p))
 		);
 	};
 
-	const eliminarEditado = (id) => {
-		setPuestosEditados((prev) => prev.filter((p) => p.id !== id));
+	const cambiarColorFondoEditado = (id, colorNuevo) => {
+		setPuestosEditados((prev) =>
+			prev.map((p) => (p.id === id ? { ...p, bgColor: colorNuevo } : p))
+		);
 	};
 
 	const guardarCambiosPuestos = () => {
@@ -355,70 +357,70 @@ const PaginaAlimentadores = () => {
 					</div>
 				) : (
 					<>
-						{puestoSeleccionado.alimentadores.length === 0 ? (
+						{/* Mensaje solo si no hay alimentadores */}
+						{puestoSeleccionado.alimentadores.length === 0 && (
 							<div className="alim-empty-state">
 								<p>
 									Este puesto no tiene alimentadores. Haz clic en el botón de abajo
 									para agregar.
 								</p>
 							</div>
-						) : (
-							<div className="alim-cards-grid">
-								{puestoSeleccionado.alimentadores.map((alim) => {
-									const lecturasAlim = lecturas[alim.id] || {};
-									const mideRele = estaMidiendo(alim.id, "rele");
-									const mideAnalizador = estaMidiendo(alim.id, "analizador");
-
-									return (
-										<TarjetaAlimentador
-											key={alim.id}
-											nombre={alim.nombre}
-											color={alim.color}
-											onConfigClick={() =>
-												abrirModalEditarAlim(puestoSeleccionado.id, alim)
-											}
-											onMapClick={() =>
-												abrirModalMapeo(puestoSeleccionado.id, alim)
-											}
-											topSide={lecturasAlim.parteSuperior}
-											bottomSide={lecturasAlim.parteInferior}
-											draggable={true}
-											isDragging={elementoArrastrandoId === alim.id}
-											onDragStart={() => handleDragStartAlim(alim.id)}
-											onDragOver={alPasarPorEncima}
-											onDrop={() => handleDropAlim(alim.id)}
-											onDragEnd={handleDragEndAlim}
-											mideRele={mideRele}
-											mideAnalizador={mideAnalizador}
-											periodoRele={alim.periodoSegundos || 60}
-											periodoAnalizador={alim.analizador?.periodoSegundos || 60}
-										/>
-									);
-								})}
-
-								{elementoArrastrandoId ? (
-									<div
-										className="alim-card-add"
-										onDragOver={alPasarPorEncima}
-										onDrop={handleDropAlimAlFinal}
-									>
-										<span style={{ textAlign: "center", padding: "1rem" }}>
-											Soltar aquí para mover al final
-										</span>
-									</div>
-								) : (
-									<div
-										className="alim-card-add"
-										onClick={abrirModalNuevoAlim}
-									>
-										<span className="alim-card-add-plus">+</span>
-										<span className="alim-card-add-text">Nuevo Registrador</span>
-									</div>
-								)}
-							</div>
 						)}
+
+						{/* Siempre renderizamos la grid, tenga 0, 1 o muchos */}
+						<div className="alim-cards-grid">
+							{puestoSeleccionado.alimentadores.map((alim) => {
+								const lecturasAlim = lecturas[alim.id] || {};
+								const mideRele = estaMidiendo(alim.id, "rele");
+								const mideAnalizador = estaMidiendo(alim.id, "analizador");
+
+								return (
+									<TarjetaAlimentador
+										key={alim.id}
+										nombre={alim.nombre}
+										color={alim.color}
+										onConfigClick={() =>
+											abrirModalEditarAlim(puestoSeleccionado.id, alim)
+										}
+										onMapClick={() =>
+											abrirModalMapeo(puestoSeleccionado.id, alim)
+										}
+										topSide={lecturasAlim.parteSuperior}
+										bottomSide={lecturasAlim.parteInferior}
+										draggable={true}
+										isDragging={elementoArrastrandoId === alim.id}
+										onDragStart={() => handleDragStartAlim(alim.id)}
+										onDragOver={alPasarPorEncima}
+										onDrop={() => handleDropAlim(alim.id)}
+										onDragEnd={handleDragEndAlim}
+										mideRele={mideRele}
+										mideAnalizador={mideAnalizador}
+										periodoRele={alim.periodoSegundos || 60}
+										periodoAnalizador={alim.analizador?.periodoSegundos || 60}
+									/>
+								);
+							})}
+
+							{elementoArrastrandoId ? (
+								<div
+									className="alim-card-add"
+									onDragOver={alPasarPorEncima}
+									onDrop={handleDropAlimAlFinal}
+								>
+									<span style={{ textAlign: "center", padding: "1rem" }}>
+										Soltar aquí para mover al final
+									</span>
+								</div>
+							) : (
+								<div className="alim-card-add" onClick={abrirModalNuevoAlim}>
+									<span className="alim-card-add-plus">+</span>
+									<span className="alim-card-add-text">Nuevo Registrador</span>
+								</div>
+							)}
+						</div>
 					</>
 				)}
+
 			</main>
 
 			{/* ===== MODALES ===== */}
@@ -480,22 +482,55 @@ const PaginaAlimentadores = () => {
 				<div className="alim-modal-overlay">
 					<div className="alim-modal">
 						<h2>Editar Puestos</h2>
+
 						<div className="alim-edit-list">
 							{puestosEditados.map((p) => (
-								<div key={p.id} className="alim-edit-item">
+								<div key={p.id} className="alim-edit-row">
+									{/* Nombre del puesto */}
 									<input
 										type="text"
-										className="alim-modal-input"
+										className="alim-edit-input"
 										value={p.nombre}
 										onChange={(e) => cambiarNombreEditado(p.id, e.target.value)}
 									/>
-									<button
-										type="button"
-										className="alim-edit-delete"
-										onClick={() => eliminarEditado(p.id)}
-									>
-										🗑️
-									</button>
+
+									{/* Colores + botón eliminar */}
+									<div className="alim-edit-right">
+										{/* Color del botón */}
+										<div className="alim-edit-color-group">
+											<span className="alim-edit-color-label">Botón</span>
+											<input
+												type="color"
+												className="alim-edit-color-input"
+												value={p.color}
+												onChange={(e) =>
+													cambiarColorBotonEditado(p.id, e.target.value)
+												}
+											/>
+										</div>
+
+										{/* Color de fondo */}
+										<div className="alim-edit-color-group">
+											<span className="alim-edit-color-label">Fondo</span>
+											<input
+												type="color"
+												className="alim-edit-color-input"
+												value={p.bgColor || "#e5e7eb"}
+												onChange={(e) =>
+													cambiarColorFondoEditado(p.id, e.target.value)
+												}
+											/>
+										</div>
+
+										{/* Botón eliminar */}
+										<button
+											type="button"
+											className="alim-edit-delete"
+											onClick={() => eliminarEditado(p.id)}
+										>
+											Eliminar
+										</button>
+									</div>
 								</div>
 							))}
 						</div>
@@ -510,7 +545,7 @@ const PaginaAlimentadores = () => {
 							</button>
 							<button
 								type="button"
-								className="alim-modal-btn alim-modal-btn-aceptar"
+								className="alim-modal-btn alim-modal-btn-guardar"
 								onClick={guardarCambiosPuestos}
 							>
 								Guardar
@@ -519,6 +554,7 @@ const PaginaAlimentadores = () => {
 					</div>
 				</div>
 			)}
+
 
 			{/* Modal Nuevo/Editar Alimentador */}
 			<ModalConfiguracionAlimentador
