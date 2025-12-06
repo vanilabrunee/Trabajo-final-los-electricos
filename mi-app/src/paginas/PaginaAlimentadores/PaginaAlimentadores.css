@@ -4,152 +4,154 @@
    LAYOUT GENERAL
    ========================================================= */
 .alim-page {
-	min-height: 100vh;
-	background-color: #f5f7fb;
-	display: flex;
-	flex-direction: column;
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-		sans-serif;
-	color: #1e293b;
+   min-height: 100vh;
+   background-color: #f5f7fb;
+   display: flex;
+   flex-direction: column;
+   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+   color: #1e293b;
 }
 
 .alim-main {
-	flex: 1;
-	padding: 1.5rem;
+   flex: 1;
+   padding: 1.5rem;
 }
 
 /* Grid de tarjetas en el main */
 .alim-cards-grid {
-	display: flex;
-	flex-wrap: wrap;
-	row-gap: 1.8rem;
-	column-gap: 2.4rem;
+   display: flex;
+   flex-wrap: wrap;
+   row-gap: 1.8rem;
+   column-gap: 2.4rem;
+	justify-content: left; /* centrar las filas para que los márgenes sean simétricos */
+	padding-left: 1.2rem;
 }
 
 /* Vista algo más compacta en pantallas chicas/medianas */
-@media (max-width: 1366px) {
-	.alim-main {
-		padding: 1rem 0.75rem;
-	}
+@media (max-width: 982px) {
+   .alim-main {
+      padding: 1rem 0.75rem;
+   }
 
-	.alim-cards-grid {
-		justify-content: center;
-		/* centramos las cards */
-		column-gap: 1.4rem;
-	}
+   .alim-cards-grid {
+      justify-content: center;
+      /* centramos las cards */
+      column-gap: 1.4rem;
+		padding-left: 0rem;
+   }
 }
 
 /* =========================================================
    NAVBAR (DESKTOP)
    ========================================================= */
 .alim-navbar {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 1rem 1.5rem;
-	background-color: #0f172a;
-	color: #e5e7eb;
-	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 1rem 1.5rem;
+   background-color: #0f172a;
+   color: #e5e7eb;
+   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
 }
 
 .alim-navbar-left {
-	display: flex;
-	flex-direction: column;
+   display: flex;
+   flex-direction: column;
 }
 
 .alim-title {
-	margin: 0;
-	font-size: 1.3rem;
+   margin: 0;
+   font-size: 1.3rem;
 }
 
 .alim-current-puesto {
-	margin-top: 0.15rem;
-	font-size: 0.9rem;
-	color: #e5e7eb;
+   margin-top: 0.15rem;
+   font-size: 0.9rem;
+   color: #e5e7eb;
 }
 
 /* Contenedor de botones de la nav */
 .alim-nav-buttons {
-	display: flex;
-	align-items: center;
-	gap: 2rem;
-	/* separa bloque 2 y bloque 1 */
+   display: flex;
+   align-items: center;
+   gap: 2rem;
+   /* separa bloque 2 y bloque 1 */
 }
 
 /* Bloque 2: botones de puestos */
 .alim-nav-bloque-puestos {
-	display: flex;
-	align-items: center;
-	gap: 2rem;
-	/* separación entre cada botón de puesto */
+   display: flex;
+   align-items: center;
+   gap: 2rem;
+   /* separación entre cada botón de puesto */
 }
 
 /* Bloque 1: +, editar, salir */
 .alim-nav-bloque-controles {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	/* más juntitos entre sí */
+   display: flex;
+   align-items: center;
+   gap: 0.75rem;
+   /* más juntitos entre sí */
 }
 
 /* Botón menú: oculto por defecto (solo se usa en modo compacto) */
 .alim-navbar-menu-btn {
-	display: none;
-	border: none;
-	background: transparent;
-	color: #e5e7eb;
-	font-size: 1.4rem;
-	cursor: pointer;
+   display: none;
+   border: none;
+   background: transparent;
+   color: #e5e7eb;
+   font-size: 1.4rem;
+   cursor: pointer;
 }
 
 /* =========================================================
    NAVBAR (MODO COMPACTO)
    ========================================================= */
 @media (max-width: 900px) {
+   /* El contenedor principal del nav pasa a modo centrado */
+   .alim-navbar {
+      justify-content: center;
+   }
 
-	/* El contenedor principal del nav pasa a modo centrado */
-	.alim-navbar {
-		justify-content: center;
-	}
+   .alim-navbar-compact {
+      justify-content: center;
+      position: relative;
+   }
 
-	.alim-navbar-compact {
-		justify-content: center;
-		position: relative;
-	}
+   /* Texto centrado con el nombre del puesto */
+   .alim-navbar-compact-title {
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-align: center;
+      width: 100%;
+   }
 
-	/* Texto centrado con el nombre del puesto */
-	.alim-navbar-compact-title {
-		font-weight: 600;
-		letter-spacing: 0.03em;
-		text-align: center;
-		width: 100%;
-	}
+   /* Mostramos el botón hamburguesa y lo posicionamos a la izquierda */
+   .alim-navbar-menu-btn {
+      display: block;
+      background: none;
+      border: none;
+      color: #e5e7eb;
+      font-size: 1.3rem;
+      cursor: pointer;
+   }
 
-	/* Mostramos el botón hamburguesa y lo posicionamos a la izquierda */
-	.alim-navbar-menu-btn {
-		display: block;
-		background: none;
-		border: none;
-		color: #e5e7eb;
-		font-size: 1.3rem;
-		cursor: pointer;
-	}
+   .alim-navbar-compact .alim-navbar-menu-btn {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+   }
 
-	.alim-navbar-compact .alim-navbar-menu-btn {
-		position: absolute;
-		left: 1rem;
-		top: 50%;
-		transform: translateY(-50%);
-	}
+   /* Ocultamos título grande y zona de botones de la derecha */
+   .alim-title {
+      display: none;
+   }
 
-	/* Ocultamos título grande y zona de botones de la derecha */
-	.alim-title {
-		display: none;
-	}
-
-	.alim-nav-buttons {
-		display: none;
-	}
+   .alim-nav-buttons {
+      display: none;
+   }
 }
 
 /* =========================================================
@@ -158,237 +160,237 @@
 
 /* Botones de puesto / genéricos */
 .alim-btn {
-	border: none;
-	border-radius: 10px;
-	padding: 0.45rem 1.2rem;
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	background-color: #22c55e;
-	color: #022c22;
-	transition: transform 0.1s ease, box-shadow 0.1s ease,
-		background-color 0.15s ease;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
+   border: none;
+   border-radius: 10px;
+   padding: 0.45rem 1.2rem;
+   font-size: 0.9rem;
+   font-weight: 600;
+   cursor: pointer;
+   background-color: #22c55e;
+   color: #022c22;
+   transition: transform 0.1s ease, box-shadow 0.1s ease,
+      background-color 0.15s ease;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
 }
 
 .alim-btn:hover {
-	background-color: #16a34a;
-	box-shadow: 0 4px 10px rgba(21, 128, 61, 0.4);
-	transform: translateY(-1px);
+   background-color: #16a34a;
+   box-shadow: 0 4px 10px rgba(21, 128, 61, 0.4);
+   transform: translateY(-1px);
 }
 
 .alim-btn:active {
-	transform: translateY(0);
-	box-shadow: none;
+   transform: translateY(0);
+   box-shadow: none;
 }
 
 /* Botón de puesto activo */
 .alim-btn-active {
-	background-color: #0ea5e9;
-	color: #0f172a;
+   background-color: #0ea5e9;
+   color: #0f172a;
 }
 
 /* Botón "+" para agregar puesto (nav y drawer) */
 .alim-btn-add {
-	background-color: transparent;
-	color: #e5e7eb;
-	border: 1px dashed #9ca3af;
-	width: 2.5rem;
-	height: 2.5rem;
-	padding: 0;
-	font-size: 2rem;
-	line-height: 1;
+   background-color: transparent;
+   color: #e5e7eb;
+   border: 1px dashed #9ca3af;
+   width: 2.5rem;
+   height: 2.5rem;
+   padding: 0;
+   font-size: 2rem;
+   line-height: 1;
 }
 
 .alim-btn-add-icon {
-	display: block;
-	transform: translateY(-3px);
+   display: block;
+   transform: translateY(-3px);
 }
 
 .alim-btn-add:hover {
-	background-color: rgba(148, 163, 184, 0.2);
-	box-shadow: none;
-	transform: none;
+   background-color: rgba(148, 163, 184, 0.2);
+   box-shadow: none;
+   transform: none;
 }
 
 /* Botón salir */
 .alim-btn-exit {
-	border: none;
-	border-radius: 10px;
-	padding: 0.45rem 1.2rem;
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	background-color: #ef4444;
-	color: #f9fafb;
-	transition: background-color 0.15s ease, transform 0.1s ease,
-		box-shadow 0.1s ease;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
+   border: none;
+   border-radius: 10px;
+   padding: 0.45rem 1.2rem;
+   font-size: 0.9rem;
+   font-weight: 600;
+   cursor: pointer;
+   background-color: #ef4444;
+   color: #f9fafb;
+   transition: background-color 0.15s ease, transform 0.1s ease,
+      box-shadow 0.1s ease;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
 }
 
 .alim-btn-exit:hover {
-	background-color: #dc2626;
-	box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
-	transform: translateY(-1px);
+   background-color: #dc2626;
+   box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+   transform: translateY(-1px);
 }
 
 .alim-btn-exit:active {
-	transform: translateY(0);
-	box-shadow: none;
+   transform: translateY(0);
+   box-shadow: none;
 }
 
 /* =========================================================
    TARJETA "+" DE ALIMENTADORES
    ========================================================= */
 .alim-card-add {
-	border: 1px dashed #374151;
-	background-color: #111827;
-	color: #9ca3af;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 0.25rem;
-	cursor: pointer;
-	min-height: 230px;
-	flex: 0 0 304px;
-	border-radius: 16px;
+   border: 1px dashed #374151;
+   background-color: #111827;
+   color: #9ca3af;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 0.25rem;
+   cursor: pointer;
+   min-height: 230px;
+   flex: 0 0 304px;
+   border-radius: 16px;
 }
 
 .alim-card-add-plus {
-	font-size: 2rem;
-	line-height: 1;
+   font-size: 2rem;
+   line-height: 1;
 }
 
 .alim-card-add-text {
-	font-size: 0.85rem;
+   font-size: 0.85rem;
 }
 
 .alim-card-section-title {
-	text-transform: uppercase;
+   text-transform: uppercase;
 }
 
 /* =========================================================
    ESTADOS VACÍOS
    ========================================================= */
 .alim-empty {
-	height: 100%;
-	display: flex;
-	align-items: flex-start;
-	justify-content: center;
-	padding-top: 2rem;
-	color: #64748b;
-	font-size: 0.95rem;
-	text-align: center;
+   height: 100%;
+   display: flex;
+   align-items: flex-start;
+   justify-content: center;
+   padding-top: 2rem;
+   color: #64748b;
+   font-size: 0.95rem;
+   text-align: center;
 }
 
 .alim-empty-state {
-	margin-bottom: 1rem;
-	color: #020202;
-	font-size: 0.95rem;
+   margin-bottom: 1rem;
+   color: #020202;
+   font-size: 0.95rem;
 }
 
 /* =========================================================
    DRAWER LATERAL
    ========================================================= */
 .alim-drawer-overlay {
-	position: fixed;
-	inset: 0;
-	background-color: rgba(15, 23, 42, 0.45);
-	display: flex;
-	align-items: stretch;
-	justify-content: flex-start;
-	opacity: 0;
-	pointer-events: none;
-	transition: opacity 0.22s ease;
-	z-index: 60;
+   position: fixed;
+   inset: 0;
+   background-color: rgba(15, 23, 42, 0.45);
+   display: flex;
+   align-items: stretch;
+   justify-content: flex-start;
+   opacity: 0;
+   pointer-events: none;
+   transition: opacity 0.22s ease;
+   z-index: 60;
 }
 
 .alim-drawer-overlay.alim-drawer-open {
-	opacity: 1;
-	pointer-events: auto;
+   opacity: 1;
+   pointer-events: auto;
 }
 
 .alim-drawer {
-	width: 260px;
-	max-width: 80vw;
-	background-color: #020617;
-	color: #e5e7eb;
-	padding: 1.4rem 1.1rem;
-	box-shadow: 8px 0 25px rgba(15, 23, 42, 0.6);
-	transform: translateX(-100%);
-	transition: transform 0.22s ease-out;
+   width: 260px;
+   max-width: 80vw;
+   background-color: #020617;
+   color: #e5e7eb;
+   padding: 1.4rem 1.1rem;
+   box-shadow: 8px 0 25px rgba(15, 23, 42, 0.6);
+   transform: translateX(-100%);
+   transition: transform 0.22s ease-out;
 }
 
 .alim-drawer-overlay.alim-drawer-open .alim-drawer {
-	transform: translateX(0);
+   transform: translateX(0);
 }
 
 .alim-drawer-header {
-	margin-bottom: 1rem;
+   margin-bottom: 1rem;
 }
 
 .alim-drawer-title {
-	margin: 0;
-	font-size: 1.1rem;
+   margin: 0;
+   font-size: 1.1rem;
 }
 
 .alim-drawer-subtitle {
-	margin: 0.25rem 0 0;
-	font-size: 0.85rem;
-	color: #9ca3af;
+   margin: 0.25rem 0 0;
+   font-size: 0.85rem;
+   color: #9ca3af;
 }
 
 .alim-drawer-section {
-	margin-top: 1.1rem;
+   margin-top: 1.1rem;
 }
 
 .alim-drawer-section-title {
-	margin: 0 0 0.5rem;
-	font-size: 0.8rem;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: #9ca3af;
+   margin: 0 0 0.5rem;
+   font-size: 0.8rem;
+   text-transform: uppercase;
+   letter-spacing: 0.08em;
+   color: #9ca3af;
 }
 
 .alim-drawer-puestos,
 .alim-drawer-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 0.45rem;
+   display: flex;
+   flex-direction: column;
+   gap: 0.45rem;
 }
 
 /* Botones dentro del drawer: ocupan todo el ancho */
 .alim-drawer .alim-btn,
 .alim-drawer .alim-btn-exit {
-	width: 100%;
-	justify-content: center;
+   width: 100%;
+   justify-content: center;
 }
 
 /* Botón "+ Nuevo puesto" dentro del drawer */
 .alim-drawer-btn-add {
-	background-color: transparent;
-	border: 1px dashed #9ca3af;
-	color: #e5e7eb;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.35rem;
-	font-weight: 500;
+   background-color: transparent;
+   border: 1px dashed #9ca3af;
+   color: #e5e7eb;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 0.35rem;
+   font-weight: 500;
 }
 
 .alim-drawer-btn-add:hover {
-	background-color: rgba(148, 163, 184, 0.2);
+   background-color: rgba(148, 163, 184, 0.2);
 }
 
 .alim-drawer-btn-add-icon {
-	font-size: 1.1rem;
-	line-height: 1;
-	transform: translateY(-1px);
+   font-size: 1.1rem;
+   line-height: 1;
+   transform: translateY(-1px);
 }
 
 /* =========================================================
@@ -397,239 +399,238 @@
 
 /* Contenedor base del modal */
 .alim-modal {
-	border-radius: 18px;
-	padding: 1.4rem 1.8rem;
-	box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
-	max-width: 580px;
-	width: 100%;
-	box-sizing: border-box;
+   border-radius: 18px;
+   padding: 1.4rem 1.8rem;
+   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
+   max-width: 580px;
+   width: 100%;
+   box-sizing: border-box;
 }
 
 /* Tamaño compacto para modales pequeños */
 .alim-modal-sm {
-	max-width: 420px;
+   max-width: 420px;
 }
 
 /* Lista de puestos a editar */
 .alim-edit-list {
-	display: flex;
-	flex-direction: column;
-	gap: 0.6rem;
-	margin-top: 0.9rem;
+   display: flex;
+   flex-direction: column;
+   gap: 0.6rem;
+   margin-top: 0.9rem;
 }
 
 /* Cada fila de edición (desktop) */
 .alim-edit-row {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 0.8rem;
-	padding: 0.8rem 1rem;
-	border-radius: 14px;
-	background: #f9fafb;
-	border: 1px solid #94a3b8;
-	/* borde más oscuro y visible */
-	box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
+   display: flex;
+   align-items: center;
+   flex-wrap: wrap;
+   gap: 0.8rem;
+   padding: 0.8rem 1rem;
+   border-radius: 14px;
+   background: #f9fafb;
+   border: 1px solid #94a3b8;
+   /* borde más oscuro y visible */
+   box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
 }
 
 .alim-edit-row:hover {
-	background: #f3f4f6;
-	border-color: #64748b;
-	/* hover más marcado */
-	box-shadow: 0 4px 10px rgba(15, 23, 42, 0.09);
+   background: #f3f4f6;
+   border-color: #64748b;
+   /* hover más marcado */
+   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.09);
 }
 
 /* Input del nombre del puesto */
 .alim-edit-input {
-	flex: 1;
-	min-width: 180px;
-	padding: 0.55rem 0.9rem;
-	border-radius: 999px;
-	border: 1px solid #e2e8f0;
-	font-size: 0.9rem;
+   flex: 1;
+   min-width: 180px;
+   padding: 0.55rem 0.9rem;
+   border-radius: 999px;
+   border: 1px solid #e2e8f0;
+   font-size: 0.9rem;
 }
 
 .alim-edit-input:focus {
-	outline: none;
-	border-color: #2563eb;
-	box-shadow: 0 0 0 1px #2563eb33;
+   outline: none;
+   border-color: #2563eb;
+   box-shadow: 0 0 0 1px #2563eb33;
 }
 
 /* Contenedor derecho: colores + botón eliminar (desktop) */
 .alim-edit-right {
-	display: flex;
-	align-items: center;
-	gap: 0.8rem;
-	flex-shrink: 0;
-	justify-content: flex-end;
+   display: flex;
+   align-items: center;
+   gap: 0.8rem;
+   flex-shrink: 0;
+   justify-content: flex-end;
 }
 
 /* Grupo Botón / Fondo (desktop) */
 .alim-edit-color-group {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.25rem;
-	font-size: 0.8rem;
-	color: #6b7280;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 0.25rem;
+   font-size: 0.8rem;
+   color: #6b7280;
 }
 
 .alim-edit-color-label {
-	line-height: 1;
-	white-space: nowrap;
+   line-height: 1;
+   white-space: nowrap;
 }
 
 /* Input color redondeado tipo chip */
 .alim-edit-color-input {
-	-webkit-appearance: none;
-	appearance: none;
-	width: 26px;
-	height: 26px;
-	padding: 0;
-	border-radius: 999px;
-	border: 2px solid #e2e8f0;
-	background: transparent;
-	cursor: pointer;
-	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.3);
+   -webkit-appearance: none;
+   appearance: none;
+   width: 26px;
+   height: 26px;
+   padding: 0;
+   border-radius: 999px;
+   border: 2px solid #e2e8f0;
+   background: transparent;
+   cursor: pointer;
+   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.3);
 }
 
 .alim-edit-color-input::-webkit-color-swatch-wrapper {
-	padding: 0;
-	border-radius: 999px;
+   padding: 0;
+   border-radius: 999px;
 }
 
 .alim-edit-color-input::-webkit-color-swatch {
-	border-radius: 999px;
-	border: none;
+   border-radius: 999px;
+   border: none;
 }
 
 .alim-edit-color-input:hover {
-	transform: scale(1.05);
+   transform: scale(1.05);
 }
 
 /* Botón ELIMINAR */
 .alim-edit-delete {
-	padding: 0.45rem 0.9rem;
-	border-radius: 12px;
-	border: none;
-	background-color: #fee2e2;
-	color: #b91c1c;
-	font-size: 0.8rem;
-	font-weight: 500;
-	cursor: pointer;
-	white-space: nowrap;
+   padding: 0.45rem 0.9rem;
+   border-radius: 12px;
+   border: none;
+   background-color: #fee2e2;
+   color: #b91c1c;
+   font-size: 0.8rem;
+   font-weight: 500;
+   cursor: pointer;
+   white-space: nowrap;
 }
 
 .alim-edit-delete:hover {
-	background-color: #fecaca;
+   background-color: #fecaca;
 }
 
 /* Zona de botones Cancelar / Guardar */
 .alim-modal-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 0.6rem;
-	margin-top: 1.4rem;
+   display: flex;
+   justify-content: flex-end;
+   gap: 0.6rem;
+   margin-top: 1.4rem;
 }
 
 /* Botones del modal */
 .alim-modal-btn {
-	min-width: 96px;
-	padding: 0.5rem 1.1rem;
-	border-radius: 12px;
-	border: none;
-	font-size: 0.9rem;
-	font-weight: 500;
-	cursor: pointer;
+   min-width: 96px;
+   padding: 0.5rem 1.1rem;
+   border-radius: 12px;
+   border: none;
+   font-size: 0.9rem;
+   font-weight: 500;
+   cursor: pointer;
 }
 
 /* Cancelar: gris suave */
 .alim-modal-btn-cancelar {
-	background-color: #e5e7eb;
-	color: #111827;
+   background-color: #e5e7eb;
+   color: #111827;
 }
 
 .alim-modal-btn-cancelar:hover {
-	background-color: #d1d5db;
+   background-color: #d1d5db;
 }
 
 /* Guardar: celeste */
 .alim-modal-btn-guardar {
-	background-color: #0ea5e9;
-	color: #ffffff;
-	box-shadow: 0 10px 22px rgba(14, 165, 233, 0.1);
+   background-color: #0ea5e9;
+   color: #ffffff;
+   box-shadow: 0 10px 22px rgba(14, 165, 233, 0.1);
 }
 
 .alim-modal-btn-guardar:hover {
-	background-color: #0284c7;
+   background-color: #0284c7;
 }
 
 /* =========================================================
    MODAL "EDITAR PUESTOS" RESPONSIVE
    ========================================================= */
 @media (max-width: 520px) {
+   /* El modal ocupa casi todo el ancho de la pantalla */
+   .alim-modal {
+      max-width: 100vw;
+      margin: 0 0.5rem;
+      padding: 1rem 0.9rem;
+   }
 
-	/* El modal ocupa casi todo el ancho de la pantalla */
-	.alim-modal {
-		max-width: 100vw;
-		margin: 0 0.5rem;
-		padding: 1rem 0.9rem;
-	}
+   /* Cada fila pasa a columna, con más aire */
+   .alim-edit-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.7rem;
+      padding: 0.9rem 1rem;
+   }
 
-	/* Cada fila pasa a columna, con más aire */
-	.alim-edit-row {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 0.7rem;
-		padding: 0.9rem 1rem;
-	}
+   /* Input a lo ancho */
+   .alim-edit-input {
+      width: 100%;
+   }
 
-	/* Input a lo ancho */
-	.alim-edit-input {
-		width: 100%;
-	}
-
-	/* Contenedor de colores + eliminar en GRID:
+   /* Contenedor de colores + eliminar en GRID:
 	   fila 1 -> Botón | Fondo
 	   fila 2 -> Eliminar ocupando todo el ancho */
-	.alim-edit-right {
-		width: 100%;
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		column-gap: 0.9rem;
-		row-gap: 0.5rem;
-		align-items: center;
-		margin-top: 0.2rem;
-	}
+   .alim-edit-right {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 0.9rem;
+      row-gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.2rem;
+   }
 
-	/* Grupos de color en fila, centrados */
-	.alim-edit-color-group {
-		flex-direction: row;
-		justify-content: center;
-		gap: 0.35rem;
-	}
+   /* Grupos de color en fila, centrados */
+   .alim-edit-color-group {
+      flex-direction: row;
+      justify-content: center;
+      gap: 0.35rem;
+   }
 
-	.alim-edit-color-label {
-		font-size: 0.8rem;
-	}
+   .alim-edit-color-label {
+      font-size: 0.8rem;
+   }
 
-	/* Botón eliminar ocupa las 2 columnas (todo el ancho) */
-	.alim-edit-delete {
-		grid-column: 1 / -1;
-		width: 100%;
-		text-align: center;
-		justify-content: center;
-		margin-top: 0.1rem;
-	}
+   /* Botón eliminar ocupa las 2 columnas (todo el ancho) */
+   .alim-edit-delete {
+      grid-column: 1 / -1;
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+      margin-top: 0.1rem;
+   }
 
-	/* Botones inferiores un poco más anchos y separados */
-	.alim-modal-actions {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 0.8rem;
-	}
+   /* Botones inferiores un poco más anchos y separados */
+   .alim-modal-actions {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+   }
 
-	.alim-modal-btn {
-		min-width: 120px;
-	}
+   .alim-modal-btn {
+      min-width: 120px;
+   }
 }
