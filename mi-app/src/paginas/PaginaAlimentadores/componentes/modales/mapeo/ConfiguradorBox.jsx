@@ -1,5 +1,4 @@
 import React from "react";
-import "./ConfiguradorBox.css";
 
 /**
  * Configurador individual de cada box de medición

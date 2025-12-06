@@ -1,6 +1,5 @@
 import React from "react";
 import { COLORES_SISTEMA } from "../../../constantes/colores";
-import "./FormularioDatosBasicos.css";
 
 /**
  * Formulario de datos básicos del alimentador

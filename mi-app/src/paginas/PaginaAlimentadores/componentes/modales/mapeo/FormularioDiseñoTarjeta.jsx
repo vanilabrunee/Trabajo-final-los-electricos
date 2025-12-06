@@ -1,6 +1,5 @@
 import React from "react";
 import ConfiguradorBox from "./ConfiguradorBox.jsx";
-import "./FormularioDiseñoTarjeta.css";
 
 const OPCIONES_TITULO_CARD = [
 	{ id: "tension_linea", label: "Tensión de línea (kV)" },
