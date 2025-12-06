@@ -1,3 +1,5 @@
+# Trabajo-final-los-electricos
+Trabajo final del tercer cuatrimestre 
 # ⚡️ RelayWatch – Monitor educativo de alimentadores
 
 > Aplicación web en React + Vite para visualizar alimentadores eléctricos, gestionar puestos y simular lecturas de relé/analizador con animación de progreso en los bordes de cada medición. Proyecto educativo del tercer cuatrimestre.
