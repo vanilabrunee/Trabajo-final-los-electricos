@@ -1,29 +1,45 @@
 // src/App.jsx
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import PaginaLogin from "./paginas/PaginaLogin/PaginaLogin.jsx";
-import PaginaRegistro from "./paginas/PaginaRegistro/PaginaRegistro.jsx";
-import PaginaAlimentadores from "./paginas/PaginaAlimentadores/PaginaAlimentadores.jsx";
+import React from "react";                                          
+import { Routes, Route, Navigate } from "react-router-dom";                // componentes de enrutado declarativo
+import PaginaLogin from "./paginas/PaginaLogin/PaginaLogin.jsx";           // pantalla de login (ruta "/")
+import PaginaRegistro from "./paginas/PaginaRegistro/PaginaRegistro.jsx";  // pantalla de registro (ruta "/registro")
+import PaginaAlimentadores from "./paginas/PaginaAlimentadores/PaginaAlimentadores.jsx"; // panel principal de alimentadores (ruta "/alimentadores")
 
-function App() {
-
+function App() {                                         // componente raíz que define el mapa de rutas
 	return (
+		<Routes>                                           {/* contenedor de todas las <Route> */}
+			<Route                                           
+				path="/"                                     
+				element={<PaginaLogin />}                    // ruta principal: muestra login
+			/>
 
-		<Routes>
-			{/* Ruta principal: login */}
-			<Route path="/" element={<PaginaLogin />} />
+			<Route                                           
+				path="/registro"                            
+				element={<PaginaRegistro />}                 // ruta para crear un nuevo usuario
+			/>
 
-			{/* Ruta de registro */}
-			<Route path="/registro" element={<PaginaRegistro />} />
+			<Route                                           
+				path="/alimentadores"                       
+				element={<PaginaAlimentadores />}            // ruta del panel de alimentadores (después de loguearse)
+			/>
 
-			{/* Ruta de alimentadores */}
-			<Route path="/alimentadores" element={<PaginaAlimentadores />} />
-
-			{/* Cualquier otra ruta -> redirige al login */}
-			<Route path="*" element={<Navigate to="/" replace />} />
+			<Route                                           
+				path="*"                                    
+				element={<Navigate to="/" replace />}       // cualquier otra URL redirige al login
+			/>
 		</Routes>
-
 	);
 }
 
-export default App;
+export default App;                                          // se importa en main.jsx como componente principal
+
+// ---------------------------------------------------------------------------
+// NOTA PERSONAL SOBRE ESTE ARCHIVO (App.jsx)
+// - Este componente define el enrutado de alto nivel de la aplicación.
+// - Usa <Routes> y <Route> de react-router-dom para asociar paths a componentes.
+// - "/" carga PaginaLogin, "/registro" carga PaginaRegistro y "/alimentadores"
+//   muestra el panel principal donde se manejan puestos y alimentadores.
+// - La última ruta con path="*" actúa como catch-all: cualquier URL desconocida
+//   navega automáticamente a "/", evitando pantallas en blanco o errores.
+// - En resumen: App.jsx es el “switch” de rutas que decide qué pantalla ver en
+//   función de la URL actual del navegador.

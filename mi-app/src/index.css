@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* src/index.css */
+/* 
+   NOTA PERSONAL SOBRE ESTE ARCHIVO (index.css)
+   - Este archivo define la “base” de estilos globales de la app.
+   - Primero importa Tailwind (`tailwindcss` y `tw-animate-css`) para poder usar
+      las utilidades y animaciones en todos los componentes.
+   - Luego declara muchas CSS custom properties (variables) para colores, radios,
+      fondos, etc., que funcionan como un pequeño sistema de diseño común.
+   - La sección `.dark { ... }` redefine esas mismas variables cuando el
+      documento tiene la clase `dark`, habilitando el tema oscuro.
+   - En `@layer base` se aplican estilos base de Tailwind al `body` y a todos
+      los elementos (borde/outline según el tema).
+   - Al final se registra la fuente “DS-Digital”, que se usa en los displays
+      numéricos de las tarjetas de alimentadores para simular un display digital.
+*/
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
