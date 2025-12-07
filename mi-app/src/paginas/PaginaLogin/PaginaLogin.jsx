@@ -227,7 +227,11 @@ const PaginaLogin = () => {
 							dispara el handleSubmit del formulario, que es donde validás usuario y contraseña, mostrás alertas, 
 							y navegás a /alimentadores si todo está bien.*/}
 
-                     <p className="recordarme">¿Olvidaste tu contraseña?</p>
+                     <Link to="/recuperarContraseña" className="recordarme">
+                     ¿Olvidaste tu contraseña?
+                     </Link>
+                     {/* ☝️ Mostrá un enlace con el texto ‘¿Olvidaste tu contraseña?’ que, al hacer clic, 
+							lleve a la pantalla de recuperar contraseña usando React Router, sin recargar toda la página.*/}
 
                      <Link to="/registro" className="registrarse">
                         ¿No tienes cuenta? registrate

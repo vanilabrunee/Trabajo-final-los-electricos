@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";                // co
 import PaginaLogin from "./paginas/PaginaLogin/PaginaLogin.jsx";           // pantalla de login (ruta "/")
 import PaginaRegistro from "./paginas/PaginaRegistro/PaginaRegistro.jsx";  // pantalla de registro (ruta "/registro")
 import PaginaAlimentadores from "./paginas/PaginaAlimentadores/PaginaAlimentadores.jsx"; // panel principal de alimentadores (ruta "/alimentadores")
+import RecuperarContrasena from "./paginas/PaginaRecuperar/recuperarContraseña.jsx"; // pantalla de recupero de contraseña (ruta "/recuperarContraseña")
 
 function App() {                                         // componente raíz que define el mapa de rutas
 	return (
@@ -16,6 +17,11 @@ function App() {                                         // componente raíz que
 			<Route                                           
 				path="/registro"                            
 				element={<PaginaRegistro />}                 // ruta para crear un nuevo usuario
+			/>
+
+			<Route
+				path="/recuperarContraseña"
+				element={<RecuperarContrasena/>}            // ruta para recuperar contraseña
 			/>
 
 			<Route                                           
