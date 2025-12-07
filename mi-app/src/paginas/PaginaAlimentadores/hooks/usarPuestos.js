@@ -213,7 +213,7 @@ export const usarPuestos = () => {
 };
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (usarPuestos.js)
+ NOTA SOBRE ESTE ARCHIVO (usarPuestos.js)
 
  - Este hook concentra todo lo relacionado con la "estructura" de la pantalla:
    la lista de puestos, cuál está seleccionado y qué alimentadores tiene cada uno.
