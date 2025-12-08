@@ -1,12 +1,15 @@
 /* src/paginas/PaginaRegistro/PaginaRegistro.css */
 /*
-   NOTA PERSONAL SOBRE ESTE ARCHIVO (PaginaRegistro.css)
+   NOTA SOBRE ESTE ARCHIVO (PaginaRegistro.css)
    - Extiende los estilos de PaginaLogin.css para adaptar el panel celeste
      a la pantalla de registro (más compacto y con títulos/labels propios).
+
    - Ajusta tamaños y márgenes de `titulo-registro`, `label-registro` e `input`
      para que el formulario de registro se vea más denso que el login.
+
    - Posiciona el botón `.btn-volver` dentro del padding de `.derecha`, en la
      esquina superior izquierda del panel.
+	  
    - Define el estilo de los mensajes de error (`.error-text`) que se muestran
      debajo de cada input, incluyendo el asterisco automático con `::before`.
 */

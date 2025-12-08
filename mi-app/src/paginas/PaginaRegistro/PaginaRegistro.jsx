@@ -1,4 +1,5 @@
 // src/paginas/PaginaRegistro/PaginaRegistro.jsx
+
 import React, { useState, useEffect } from "react";                  // React y hooks de estado/efectos
 import { useNavigate } from "react-router-dom";                      // navegación programática entre rutas
 import "../PaginaLogin/PaginaLogin.css";                             // reutiliza el layout base del login
@@ -351,3 +352,228 @@ Explicación del regex:
 
   Entonces regexEmail.test(email) devuelve true solo si TODO el texto tiene forma algo@algo.algo sin espacios.
   Si el usuario deja espacios, falta el @ o el punto, o escribe algo raro al principio o al final, el patrón no coincide y test devuelve false, por eso entrás en el mensaje "El formato de email no es válido." */}
+
+/*---------------------------------------------------------------------------
+CÓDIGO + EXPLICACIÓN DE CADA PARTE (PaginaRegistro.jsx)
+
+0) Visión general de la pantalla
+
+   - PaginaRegistro implementa la alta de nuevos usuarios para el TP.
+
+   - Valida cada campo del formulario, evita duplicar Email y Usuario y, si
+     todo está correcto, hace un POST al json-server (db.json) en /users.
+
+   - Tras registrar al usuario, limpia el formulario y redirige al login.
+
+1) Imports y estilos
+
+   import React, { useState, useEffect } from "react";
+   import { useNavigate } from "react-router-dom";
+   import "../PaginaLogin/PaginaLogin.css";
+   import "./PaginaRegistro.css";
+
+   - useState:
+       • maneja el contenido de cada input (nombre, usuario, email, etc.)
+         y el objeto de errores.
+
+   - useNavigate:
+       • se usa para volver al login tanto desde el botón “Volver” como
+         luego de un registro exitoso.
+
+   - CSS:
+       • PaginaLogin.css da el layout base (lado izquierdo con logo y lado
+         derecho con formulario).
+
+       • PaginaRegistro.css aplica ajustes visuales particulares de esta vista.
+
+2) Estado del formulario y navegación
+
+   const [nombre, setNombre] = useState("");
+   const [usuario, setUsuario] = useState("");
+   const [email, setEmail] = useState("");
+   const [contraseña, setContraseña] = useState("");
+   const [confirmar, setConfirmar] = useState("");
+   const [errores, setErrores] = useState({});
+   const navigate = useNavigate();
+
+   - Cada campo de texto tiene su propio estado controlado:
+       • nombre → “Nombre completo”
+       • usuario → nombre de usuario que se usará al loguearse
+       • email → correo de contacto/identificación
+       • contraseña / confirmar → credenciales de acceso (doble entrada).
+
+   - errores:
+       • es un objeto cuyas keys son los nombres de campo ("nombre",
+         "usuario", etc.) y cuyos valores son strings con el mensaje de
+         error correspondiente.
+       • si un campo no tiene error, no aparece en este objeto.
+
+3) validarCampo(campo): validación por campo
+
+   const validarCampo = (campo) => { ... };
+
+   - Recibe el nombre del campo y, mediante un switch, aplica reglas específicas:
+
+     • nombre:
+         - obligatorio (no puede ser vacío tras trim()).
+         - al menos 3 caracteres.
+
+     • usuario:
+         - obligatorio.
+         - al menos 4 caracteres.
+
+     • email:
+         - obligatorio.
+         - debe cumplir el patrón de regexEmail (forma general algo@algo.algo).
+
+     • contraseña:
+         - obligatoria.
+         - mínimo 6 caracteres.
+
+     • confirmar:
+         - obligatorio.
+         - debe coincidir exactamente con contraseña.
+
+   - Luego, actualiza el estado errores:
+       • si hay mensaje, guarda errores[campo] = mensaje.
+       • si mensaje está vacío, elimina ese campo del objeto de errores.
+
+   - Devuelve el mensaje generado (vacío si el campo está bien), lo cual permite
+     que otras funciones (como validarTodo) sepan si hubo algún problema.
+
+4) handleBlur(campo): validación al salir de cada input
+
+   const handleBlur = (campo) => {
+     validarCampo(campo);
+   };
+
+   - Se usa en onBlur de cada input para validar cada campo al perder el foco.
+
+   - Esto permite mostrar el error inmediatamente debajo del input sin esperar
+     al submit del formulario.
+
+5) validarTodo(): validación global del formulario
+
+   const validarTodo = () => {
+     const campos = ["nombre", "usuario", "email", "contraseña", "confirmar"];
+     const mensajes = campos.map((c) => validarCampo(c));
+     return mensajes.every((m) => m === "");
+   };
+
+   - Recorre todos los campos importantes, ejecuta validarCampo para cada uno
+     y recoge los mensajes devueltos.
+
+   - Devuelve true solo si todos los mensajes son cadenas vacías (es decir, no
+     hay errores en ningún campo).
+
+   - Se utiliza justo antes de intentar enviar los datos al servidor.
+
+6) handleSubmit: flujo principal de registro
+
+   const handleSubmit = async (event) => { ... };
+
+   6.1) Evitar recarga y validar
+
+   - event.preventDefault() mantiene la SPA sin recargar la página.
+
+   - Si validarTodo() devuelve false, se corta el flujo para que el usuario
+     corrija los errores mostrados.
+
+   6.2) Comprobación de duplicados en json-server
+
+   - Consulta por email:
+       • GET a http://localhost:4000/users?Email=EMAIL
+       • Si la respuesta devuelve al menos un registro, significa que ya existe
+         alguien con ese email → se muestra alert y se interrumpe el registro.
+
+   - Consulta por usuario:
+       • GET a http://localhost:4000/users?Usuario=USUARIO
+       • Si también hay registros, se muestra alert indicando que el nombre de
+         usuario ya está en uso.
+
+   - Si ocurre algún error en estas consultas, se notifica en consola pero se
+     continúa con el flujo (al ser un TP, se privilegia no trabar al usuario).
+
+   6.3) Construcción de nuevoUsuario
+
+   const nuevoUsuario = {
+     id: Date.now().toString(),
+     Nombre: nombre.trim(),
+     Usuario: usuario.trim(),
+     Email: email.trim().toLowerCase(),
+     Contraseña: contraseña,
+   };
+
+   - id:
+       • usa Date.now() para generar un identificador único simple basado en
+         milisegundos. Es suficiente para un TP sin colisiones.
+   - Nombre / Usuario / Email / Contraseña:
+       • se arman exactamente con las keys y formateo que espera db.json
+         (“Nombre”, “Usuario”, “Email”, “Contraseña”).
+       • Email se normaliza a minúsculas para evitar duplicados por diferencias
+         de mayúsculas/minúsculas.
+
+   6.4) POST al json-server y feedback al usuario
+
+   - Se hace un fetch a "http://localhost:4000/users" con método POST y
+     cuerpo JSON.stringify(nuevoUsuario).
+
+   - Si respuesta.ok es true:
+       • se muestra alert("Cuenta creada con éxito!").
+       • se limpian todos los estados de campos y el objeto errores.
+       • se navega a "/" (pantalla de login) para que el usuario pruebe
+         sus nuevas credenciales.
+
+   - Si no es ok:
+       • se muestra un alert genérico de error al guardar.
+
+   - En caso de excepción de red o de json-server caído:
+       • se loguea el error en consola.
+       • se muestra un alert indicando que verifiques si json-server está
+         corriendo.
+
+7) handleVolver: volver al login sin registrar
+
+   const handleVolver = () => {
+     navigate("/");
+   };
+
+   - Botón auxiliar para regresar al login sin intentar crear usuario.
+
+   - Útil si el usuario se arrepiente o quiere revisar credenciales existentes.
+
+8) Render del formulario y manejo visual de errores
+
+   - Estructura general:
+       • form.login-form.registro-page → reutiliza el layout de login.
+       • container → divide en izquierda (logo) y derecha (formulario).
+       • Cada input:
+           - está ligado a su estado local (value + onChange).
+           - usa onBlur para disparar la validación de ese campo.
+           - aplica la clase "input-error" si existe errores[campo], para
+             mostrar el borde o color de error.
+           - debajo de cada input, si errores[campo] tiene texto, se muestra
+             <p className="error-text"> con el detalle del problema.
+
+   - Botón principal:
+       • “Crear cuenta” envía el formulario (onSubmit) y dispara handleSubmit.
+
+9) Explicación del regex de email
+
+   const regexEmail = /^\S+@\S+\.\S+$/;
+
+   - ^        → inicio de la cadena (no se permite nada antes).
+   - \S+      → uno o más caracteres que no sean espacio (parte local del email).
+   - @        → el símbolo arroba literal.
+   - \S+      → uno o más caracteres sin espacio (dominio, por ejemplo "gmail").
+   - \.       → un punto literal (se escapa porque . en regex significa “cualquier carácter”).
+   - \S+      → uno o más caracteres sin espacio (TLD, por ejemplo "com").
+   - $        → final de la cadena (no se permite nada después).
+
+   - En conjunto, sólo acepta textos del estilo:
+       algo@algo.algo
+     sin espacios ni caracteres adicionales antes o después.
+	  
+   - Si el email no cumple esa forma mínima, regexEmail.test(email) devuelve
+     false y se muestra el mensaje "El formato de email no es válido.".
+---------------------------------------------------------------------------*/
