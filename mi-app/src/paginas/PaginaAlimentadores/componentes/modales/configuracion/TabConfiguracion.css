@@ -1,4 +1,16 @@
-/* Estilos compartidos para tabs de configuracion (Rele / Analizador) */
+/* src/paginas/PaginaAlimentadores/componentes/modales/configuracion/TabConfiguracion.css */
+/*
+   NOTA SOBRE ESTE ARCHIVO (TabConfiguracion.css)
+   - Estilos compartidos para las pestañas de configuración del relé y del
+     analizador dentro del modal de configuración de alimentador.
+
+   - `.alim-modal-grid` arma el layout tipo grid donde se ubican los campos,
+     los botones de test/medición y la tabla con los registros leídos.
+	  
+   - Las clases `.alim-test-*` definen colores y tamaños de los botones,
+     mensajes y tabla de prueba, incluyendo el warning cuando el período es
+     menor a 60 segundos.
+*/
 
 /* Grid de campos dentro del tab */
 .alim-modal-grid {
