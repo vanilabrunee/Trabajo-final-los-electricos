@@ -1,3 +1,15 @@
+/* src/paginas/PaginaAlimentadores/componentes/navegacion/BarraNavegacion.css */
+/*
+   NOTA PERSONAL SOBRE ESTE ARCHIVO (BarraNavegacion.css)
+   - Define el layout visual de la barra superior en modo escritorio y compacto.
+   - `.alim-navbar` arma el contenedor principal; los bloques
+     `.alim-nav-bloque-puestos` y `.alim-nav-bloque-controles` distribuyen los
+     botones de puestos y los controles (nuevo, editar, salir).
+   - El media query a 900px activa el modo compacto: centra el título,
+     muestra el botón de menú (`.alim-navbar-menu-btn`) y oculta los botones
+     de puestos y controles de la derecha (que pasan al menú lateral).
+*/
+
 /* Estilos de la barra de navegacion (movidos desde PaginaAlimentadores.css) */
 
 /* =========================================================
