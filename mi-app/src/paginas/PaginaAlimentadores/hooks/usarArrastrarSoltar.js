@@ -101,7 +101,7 @@ export const usarArrastrarSoltar = () => {
 };
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (usarArrastrarSoltar.js)
+ NOTA SOBRE ESTE ARCHIVO (usarArrastrarSoltar.js)
 
  - Este hook concentra la lógica de drag & drop usada para reordenar tarjetas
    de alimentadores en la grilla.

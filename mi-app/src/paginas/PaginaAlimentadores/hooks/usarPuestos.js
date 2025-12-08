@@ -255,13 +255,16 @@ export const usarPuestos = () => {
    };
 
    - Recibe el nombre y el color que vienen del modal “Nuevo puesto”.
+
    - Crea un objeto `nuevoPuesto` con:
        • un id único (usando Date.now()),
        • el nombre sin espacios al inicio/fin,
        • el color elegido o uno por defecto si no se pasó nada,
        • un fondo por defecto,
        • un array vacío de `alimentadores`.
+
    - Agrega ese puesto al final de la lista de `puestos`.
+	
    - Deja seleccionado automáticamente el puesto que se acaba de crear.
 
  2) actualizarPuestos
@@ -279,8 +282,11 @@ export const usarPuestos = () => {
    };
 
    - Recibe la lista completa de puestos editada desde el modal “Editar puestos”.
+
    - Elimina de esa lista los puestos que quedaron sin nombre (nombre vacío).
+
    - Actualiza el estado `puestos` con esa lista depurada.
+
    - Revisa si el puesto que estaba seleccionado sigue existiendo:
        • si existe, se deja igual,
        • si fue eliminado, se selecciona el primer puesto disponible,
@@ -295,7 +301,9 @@ export const usarPuestos = () => {
    };
 
    - Recibe el `idPuesto` que se quiere eliminar.
+
    - Crea una nueva lista de `puestos` sin el puesto que tenga ese id.
+
    - No se ocupa de la selección actual; ese ajuste lo hace otro efecto
      que vigila `puestoSeleccionadoId` y la lista de puestos.
 
@@ -306,6 +314,7 @@ export const usarPuestos = () => {
    };
 
    - Guarda en `puestoSeleccionadoId` el id del puesto que se eligió.
+
    - A partir de ese id, el resto de la app toma:
        • qué puesto está activo,
        • qué alimentadores hay que mostrar en la pantalla.
@@ -333,13 +342,16 @@ export const usarPuestos = () => {
    };
 
    - Solo funciona si ya hay un `puestoSeleccionado`; si no, sale sin hacer nada.
+
    - Crea un `nuevoAlimentador` con:
        • un id único,
        • todos los campos que envía el modal (nombre, IP, etc.).
+
    - Recorre la lista de `puestos`:
        • cuando encuentra el puesto seleccionado, le agrega el nuevo
          alimentador al final de su array `alimentadores`,
        • los demás puestos quedan igual.
+
    - De esta forma solo se modifica el puesto activo y se respeta la estructura
      inmutable (se crean nuevos objetos en lugar de modificar los existentes).
 
@@ -364,11 +376,14 @@ export const usarPuestos = () => {
        • `idPuesto`: en qué puesto hay que buscar,
        • `idAlimentador`: qué alimentador dentro de ese puesto queremos editar,
        • `nuevosDatos`: los campos actualizados (nombre, IP, etc.).
+
    - Recorre los puestos hasta encontrar el que coincide con `idPuesto`.
+
    - Dentro de ese puesto, recorre sus `alimentadores` y:
        • cuando encuentra el que tiene `idAlimentador`, crea una nueva versión
          mezclando los datos anteriores con `nuevosDatos`,
        • el resto de alimentadores se dejan tal cual.
+
    - Así actualiza solo el alimentador indicado sin tocar el resto de la estructura.
 
  7) eliminarAlimentador
@@ -391,9 +406,12 @@ export const usarPuestos = () => {
    - Recibe:
        • `idPuesto`: puesto al que pertenece el alimentador,
        • `idAlimentador`: alimentador que se quiere borrar.
+
    - Busca el puesto con `idPuesto`.
+
    - En ese puesto, crea una nueva lista de `alimentadores` eliminando el que
      coincida con `idAlimentador`.
+
    - Devuelve una nueva lista de `puestos` donde solo ese puesto cambió,
      manteniendo la idea de no modificar directamente los objetos originales.
 
@@ -414,6 +432,7 @@ export const usarPuestos = () => {
        • `nuevoOrdenAlimentadores`: array de alimentadores ya ordenado
          (por ejemplo, después de un drag & drop).
    - Reemplaza el array `alimentadores` de ese puesto por el nuevo orden.
+
    - No calcula el orden; solo guarda el resultado que le pasó la lógica
      de drag & drop.
 ---------------------------------------------------------------------------*/}

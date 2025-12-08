@@ -151,7 +151,7 @@ export const usarContextoAlimentadores = () => {
 
 {
    /*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (ContextoAlimentadores.jsx)
+ NOTA SOBRE ESTE ARCHIVO (ContextoAlimentadores.jsx)
 
  - Este archivo es el "cerebro compartido" de la página de alimentadores:
    junta lo que hacen `usarPuestos` y `usarMediciones` y lo expone por context.
