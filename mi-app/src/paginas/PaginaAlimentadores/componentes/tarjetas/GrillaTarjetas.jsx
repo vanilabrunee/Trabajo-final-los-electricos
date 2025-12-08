@@ -1,6 +1,6 @@
 // src/paginas/PaginaAlimentadores/componentes/tarjetas/GrillaTarjetas.jsx
 
-import React from "react";                                 // JSX y componentes
+import React from "react";                                 
 import TarjetaAlimentador from "./TarjetaAlimentador.jsx"; // tarjeta individual de alimentador
 import "./GrillaTarjetas.css";                             // estilos de la grilla + tarjeta "+" de nuevo
 

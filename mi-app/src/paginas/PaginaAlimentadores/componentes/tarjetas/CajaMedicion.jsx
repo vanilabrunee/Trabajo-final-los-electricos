@@ -1,6 +1,6 @@
 // src/paginas/PaginaAlimentadores/componentes/tarjetas/CajaMedicion.jsx
 
-import React from "react"; // componente funcional simple
+import React from "react"; 
 
 /**
  * Caja individual de medición con su animación de borde y valor.
@@ -78,7 +78,7 @@ const CajaMedicion = ({
 export default CajaMedicion;
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (CajaMedicion.jsx)
+ NOTA SOBRE ESTE ARCHIVO (CajaMedicion.jsx)
 
  - Representa un único “display” de la tarjeta (por ejemplo, fase R de corriente),
    encargado de mostrar etiqueta, valor y, opcionalmente, el borde de progreso.

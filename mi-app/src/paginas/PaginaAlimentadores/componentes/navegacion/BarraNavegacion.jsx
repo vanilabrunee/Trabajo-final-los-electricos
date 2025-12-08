@@ -1,6 +1,6 @@
 // src/paginas/PaginaAlimentadores/componentes/navegacion/BarraNavegacion.jsx
 
-import React from "react";                 // componente funcional de React
+import React from "react";                 
 import "./BarraNavegacion.css";            // estilos específicos de la barra superior
 
 /**
@@ -118,7 +118,7 @@ const BarraNavegacion = ({
 export default BarraNavegacion;
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (BarraNavegacion.jsx)
+ NOTA SOBRE ESTE ARCHIVO (BarraNavegacion.jsx)
 
  - Este componente es la barra superior fija del panel de alimentadores.
    En modo escritorio muestra el título, el puesto actual y todos los botones

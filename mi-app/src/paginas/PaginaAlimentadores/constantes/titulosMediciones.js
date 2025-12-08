@@ -1,6 +1,8 @@
+// src/paginas/PaginaAlimentadores/constantes/titulosMediciones.js
+
 /**
- * Títulos descriptivos para cada tipo de medición
- * Aparecen en las tarjetas de alimentadores
+ * Títulos descriptivos para cada tipo de medición.
+ * Aparecen en las tarjetas de alimentadores (parte superior/inferior).
  */
 export const TITULOS_MEDICIONES = {
 	tension_linea: "Tensión de línea (kV)",
@@ -16,8 +18,8 @@ export const TITULOS_MEDICIONES = {
 };
 
 /**
- * Etiquetas que aparecen en cada medidor (R, S, T, etc.)
- * Organizadas por tipo de medición
+ * Etiquetas que aparecen en cada medidor (R, S, T, etc.),
+ * organizadas por tipo de medición.
  */
 export const ETIQUETAS_POR_DEFECTO = {
 	corriente_132: ["R", "S", "T", "N"],
@@ -33,20 +35,36 @@ export const ETIQUETAS_POR_DEFECTO = {
 };
 
 /**
- * Diseño por defecto de una tarjeta de alimentador
- * Define qué se muestra en la parte superior e inferior
+ * Diseño por defecto de una tarjeta de alimentador.
+ * Define qué se muestra en la parte superior e inferior.
  */
 export const DISEÑO_TARJETA_POR_DEFECTO = {
 	superior: {
-		tituloId: "corriente_132",
+		tituloId: "corriente_132", // arriba se muestran corrientes de línea (13,2 kV)
 		tituloCustom: "",
-		cantidad: 3,
+		cantidad: 3,               // por defecto R, S, T
 		boxes: [],
 	},
 	inferior: {
-		tituloId: "tension_linea",
+		tituloId: "tension_linea", // abajo se muestran tensiones de línea (kV)
 		tituloCustom: "",
 		cantidad: 3,
 		boxes: [],
 	},
 };
+
+{/*---------------------------------------------------------------------------
+ NOTA SOBRE ESTE ARCHIVO (titulosMediciones.js)
+
+ - `TITULOS_MEDICIONES` traduce ids como `corriente_132` o `tension_linea`
+   a textos legibles que aparecen como títulos en los lados de la tarjeta.
+
+ - `ETIQUETAS_POR_DEFECTO` define las etiquetas iniciales de cada box según
+   el tipo de magnitud (por ejemplo, R/S/T/N para corrientes y L1/L2/L3/Total
+   para potencias).
+
+ - `DISEÑO_TARJETA_POR_DEFECTO` se usa en `calculosMediciones.js` como base
+   cuando todavía no hay ningún `cardDesign` configurado por el usuario, de
+   modo que siempre exista una estructura razonable para mostrar.
+---------------------------------------------------------------------------*/}
+

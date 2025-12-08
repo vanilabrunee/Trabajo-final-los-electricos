@@ -1,6 +1,6 @@
 // src/paginas/PaginaAlimentadores/componentes/tarjetas/GrupoMedidores.jsx
 
-import React from "react"; // componente funcional simple
+import React from "react"; 
 
 /**
  * Renderiza un grupo de cajas de medición (parte superior o inferior).
@@ -19,7 +19,7 @@ const GrupoMedidores = ({ titulo, boxes, zona, renderizarCaja }) => {     // zon
 export default GrupoMedidores;
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (GrupoMedidores.jsx)
+ NOTA SOBRE ESTE ARCHIVO (GrupoMedidores.jsx)
 
  - Este componente es un contenedor: solo recibe `titulo`, `boxes` y una
    función `renderizarCaja` y se encarga de ordenarlos dentro del layout de la

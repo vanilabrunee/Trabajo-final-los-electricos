@@ -200,7 +200,7 @@ const TarjetaAlimentador = ({
 export default TarjetaAlimentador;
 
 {/*---------------------------------------------------------------------------
- NOTA PERSONAL SOBRE ESTE ARCHIVO (TarjetaAlimentador.jsx)
+ NOTA SOBRE ESTE ARCHIVO (TarjetaAlimentador.jsx)
 
  - Este componente representa una tarjeta de alimentador (un registrador) con
    dos bloques de mediciones: parte superior e inferior.

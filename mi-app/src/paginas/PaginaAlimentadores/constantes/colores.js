@@ -1,6 +1,8 @@
+// src/paginas/PaginaAlimentadores/constantes/colores.js
+
 /**
  * Paleta de colores del sistema
- * Usada para puestos y alimentadores
+ * Usada para puestos y alimentadores (botones, tarjetas, etc.).
  */
 export const COLORES_SISTEMA = [
 	"#22c55e", // Verde
@@ -16,3 +18,16 @@ export const COLORES_SISTEMA = [
 	"#6366f1", // Índigo
 	"#64748b", // Gris azulado
 ];
+
+{/*---------------------------------------------------------------------------
+ NOTA SOBRE ESTE ARCHIVO (colores.js)
+
+ - `COLORES_SISTEMA` es la paleta central para elegir colores de puestos y
+   alimentadores. En el modal de configuración se recorre este array para
+   dibujar los cuadrados de color.
+
+ - Si en algún momento quiero cambiar el look&feel (por ejemplo, usar otros
+   verdes o agregar más opciones), basta con modificar esta lista sin tocar
+   el resto de los componentes.
+---------------------------------------------------------------------------*/}
+
