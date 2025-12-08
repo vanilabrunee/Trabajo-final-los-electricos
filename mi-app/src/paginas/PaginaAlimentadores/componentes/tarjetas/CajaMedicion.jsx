@@ -1,38 +1,45 @@
-import React from "react";
+// src/paginas/PaginaAlimentadores/componentes/tarjetas/CajaMedicion.jsx
+
+import React from "react"; // componente funcional simple
 
 /**
  * Caja individual de medición con su animación de borde y valor.
  */
 const CajaMedicion = ({
-	box,
-	indice,
-	zona,
-	mideRele,
-	mideAnalizador,
-	mostrarProgresoRele,
-	mostrarProgresoAnalizador,
-	periodoRele,
-	periodoAnalizador,
-	contadorRele,
-	contadorAnalizador,
+	box,                              // { etiqueta, valor, enabled, origen }
+	indice,                           // posición dentro del grupo (0..3)
+	zona,                             // "sup" o "inf" para identificar el lado
+	mideRele,                         // indica si la medición de relé está activa
+	mideAnalizador,                   // indica si la medición de analizador está activa
+	mostrarProgresoRele,              // activa animación de borde para relé
+	mostrarProgresoAnalizador,        // activa animación de borde para analizador
+	periodoRele,                      // periodo configurado (segundos) para relé
+	periodoAnalizador,                // periodo configurado (segundos) para analizador
+	contadorRele,                     // cuántas lecturas se hicieron para relé
+	contadorAnalizador,               // cuántas lecturas se hicieron para analizador
 }) => {
-	const esDelRele = box.origen === "rele" || !box.origen;
+	const esDelRele = box.origen === "rele" || !box.origen;       // si no se especifica origen, asumimos relé
 	const esDelAnalizador = box.origen === "analizador";
 
 	const medicionActiva =
-		box.enabled &&
-		((esDelRele && mideRele) || (esDelAnalizador && mideAnalizador));
+		box.enabled &&                                             // la caja debe estar habilitada
+		((esDelRele && mideRele) || (esDelAnalizador && mideAnalizador)); // y el equipo correspondiente debe estar midiendo
 
 	const progresoHabilitado =
 		(esDelRele && mostrarProgresoRele) ||
-		(esDelAnalizador && mostrarProgresoAnalizador);
+		(esDelAnalizador && mostrarProgresoAnalizador);            // control global de cuándo mostrar borde animado
 
-	const equipo = esDelAnalizador ? "analizador" : "rele";
-	const duracionAnimacion = esDelAnalizador ? periodoAnalizador : periodoRele;
-	const contadorLecturas = esDelAnalizador ? contadorAnalizador : contadorRele;
+	const equipo = esDelAnalizador ? "analizador" : "rele";       // texto para identificar el equipo
+	const duracionAnimacion = esDelAnalizador                    // duración del borde animado según equipo
+		? periodoAnalizador
+		: periodoRele;
+	const contadorLecturas = esDelAnalizador                     // contador usado para forzar reinicio de animación
+		? contadorAnalizador
+		: contadorRele;
 
-	let clasesValor = "alim-card-meter-value";
+	let clasesValor = "alim-card-meter-value";                    // clase base del valor
 
+	// si hay medición activa y el progreso está habilitado, agregamos la clase de animación correspondiente
 	if (medicionActiva && progresoHabilitado) {
 		if (esDelRele) {
 			clasesValor += " alim-meter-progress-rele";
@@ -43,6 +50,7 @@ const CajaMedicion = ({
 
 	// Key que incluye el contador de lecturas para reiniciar animación
 	const claveValor = `${zona}-${indice}-${equipo}-c${contadorLecturas}`;
+	// variable CSS que controla la duración de la animación del borde
 	const propiedadDuracion = esDelRele
 		? "--rw-progress-duration-rele"
 		: "--rw-progress-duration-analizador";
@@ -56,8 +64,8 @@ const CajaMedicion = ({
 				style={
 					medicionActiva && progresoHabilitado
 						? {
-							[propiedadDuracion]: `${duracionAnimacion}s`,
-						}
+								[propiedadDuracion]: `${duracionAnimacion}s`, // pasa el periodo como variable CSS
+						  }
 						: undefined
 				}
 			>
@@ -68,3 +76,295 @@ const CajaMedicion = ({
 };
 
 export default CajaMedicion;
+
+{/*---------------------------------------------------------------------------
+ NOTA PERSONAL SOBRE ESTE ARCHIVO (CajaMedicion.jsx)
+
+ - Representa un único “display” de la tarjeta (por ejemplo, fase R de corriente),
+   encargado de mostrar etiqueta, valor y, opcionalmente, el borde de progreso.
+
+ - `box.origen` decide si la caja pertenece al relé o al analizador; si no se
+   indica, se asume relé por defecto.
+
+ - El par `medicionActiva` + `progresoHabilitado` controla cuándo se aplica la
+   clase de borde animado: solo si la caja está habilitada y el equipo está
+   midiendo (y la vista decidió mostrar progreso).
+
+ - La key `claveValor` incluye el contador de lecturas para que React vuelva a
+   montar el span del valor cuando llegue una nueva lectura, reiniciando así la
+   animación de borde.
+
+ - `propiedadDuracion` permite ajustar la duración de la animación vía variable
+   CSS diferente para relé y analizador.
+---------------------------------------------------------------------------*/}
+
+/*---------------------------------------------------------------------------
+CÓDIGO + EXPLICACIÓN DE CADA PARTE (CajaMedicion.jsx)
+
+0) Visión general del componente
+
+   `CajaMedicion` es el “display” individual dentro de la tarjeta:
+
+   - Muestra:
+       • una etiqueta (ej: "R", "S", "T" o un nombre personalizado),
+       • un valor numérico o placeholder (`"--,--"`).
+
+   - Opcionalmente dibuja una animación de borde alrededor del valor para indicar
+     el progreso del período de medición (tipo “barra de progreso circular”):
+
+       • puede representar el período del relé,
+       • o el del analizador, según el origen definido en la caja.
+
+
+1) Props y rol de cada una
+
+   const CajaMedicion = ({
+     box,
+     indice,
+     zona,
+     mideRele,
+     mideAnalizador,
+     mostrarProgresoRele,
+     mostrarProgresoAnalizador,
+     periodoRele,
+     periodoAnalizador,
+     contadorRele,
+     contadorAnalizador,
+   }) => { ... }
+
+   - `box`:
+       • objeto con la configuración de esta caja:
+           - `box.etiqueta`  → texto a mostrar encima del valor,
+           - `box.valor`     → lectura procesada (como string),
+           - `box.enabled`   → si la caja está habilitada para mostrar medición,
+           - `box.origen`    → `"rele"`, `"analizador"` o `undefined`:
+               · si es `"rele"`, la caja depende del relé,
+               · si es `"analizador"`, depende del analizador,
+               · si no se indica, se asume relé por defecto.
+
+   - `indice`:
+       • posición dentro del grupo de cajas (0, 1, 2 o 3),
+       • se usa para construir keys únicas.
+
+   - `zona`:
+       • indica si esta caja está en la parte:
+           - `"sup"` → bloque superior de la tarjeta,
+           - `"inf"` → bloque inferior.
+       • también participa en la generación de keys.
+
+   - `mideRele` / `mideAnalizador`:
+       • booleans que indican si hay mediciones activas para cada equipo.
+       • vienen del contexto y reflejan el estado real de los timers.
+
+   - `mostrarProgresoRele` / `mostrarProgresoAnalizador`:
+       • booleans que controlan si se debe animar el borde para cada equipo.
+       • los gestiona `TarjetaAlimentador` según si ya hubo lecturas, etc.
+
+   - `periodoRele` / `periodoAnalizador`:
+       • duración del ciclo de actualización en segundos,
+       • se usan para ajustar la velocidad de la animación del borde.
+
+   - `contadorRele` / `contadorAnalizador`:
+       • se incrementan en cada lectura,
+       • sirven para forzar el reinicio de la animación cuando llega un nuevo set
+         de datos (usando la key).
+
+
+2) Banderas de origen: esDelRele / esDelAnalizador
+
+   const esDelRele = box.origen === "rele" || !box.origen;
+   const esDelAnalizador = box.origen === "analizador";
+
+   - `esDelRele`:
+       • es true si `box.origen` es `"rele"`,
+       • o si `box.origen` no está definido (`!box.origen`),
+       • en otras palabras: si no se aclara, asumimos relé como origen por defecto.
+
+   - `esDelAnalizador`:
+       • true solo si `box.origen === "analizador"`.
+
+   - Esto permite que la misma caja se integre a la lógica de:
+       • mediciones y animaciones del relé,
+       • o del analizador,
+       • sin mezclar ambas cosas a la vez.
+
+
+3) Determinar si la medición está activa en esta caja
+
+   const medicionActiva =
+     box.enabled &&
+     ((esDelRele && mideRele) || (esDelAnalizador && mideAnalizador));
+
+   - La caja solo debe considerarse “activa” si se cumplen dos condiciones:
+
+       1) `box.enabled` es true:
+           • el mapeo habilitó esta caja (se decidió usarla).
+
+       2) El equipo correspondiente está midiendo:
+           • si la caja es del relé → se requiere `mideRele === true`,
+           • si es del analizador → se requiere `mideAnalizador === true`.
+
+   - Si cualquiera de estas condiciones falla:
+       • `medicionActiva` será false,
+       • no se mostrará animación de progreso.
+
+
+4) Control de progreso: progresoHabilitado
+
+   const progresoHabilitado =
+     (esDelRele && mostrarProgresoRele) ||
+     (esDelAnalizador && mostrarProgresoAnalizador);
+
+   - Esta bandera no mira solo el estado de medición, sino la decisión de la vista
+     sobre si debe mostrarse la animación en este momento.
+
+   - Resumen:
+
+       • Para cajas de relé:
+             `esDelRele && mostrarProgresoRele`
+
+       • Para cajas de analizador:
+             `esDelAnalizador && mostrarProgresoAnalizador`
+
+   - `mostrarProgresoRele` / `mostrarProgresoAnalizador` los maneja
+     `TarjetaAlimentador` usando contadores de lecturas:
+       • se activan cuando llega al menos una lectura,
+       • se apagan si se detiene la medición o se cambia de puesto.
+
+
+5) Equipo, duración y contador de lecturas
+
+   const equipo = esDelAnalizador ? "analizador" : "rele";
+
+   - Texto de conveniencia para identificar a cuál equipo está asociada la caja.
+
+   const duracionAnimacion = esDelAnalizador
+     ? periodoAnalizador
+     : periodoRele;
+
+   - “Cuánto dura” el ciclo de animación del borde:
+       • si la caja es del analizador → usa `periodoAnalizador`,
+       • si no → usa `periodoRele`.
+
+   const contadorLecturas = esDelAnalizador
+     ? contadorAnalizador
+     : contadorRele;
+
+   - Se elige el contador que corresponde al equipo de esta caja:
+
+       • analizador → `contadorAnalizador`,
+       • relé       → `contadorRele`.
+
+   - Este valor se usará después para generar una key única y provocar que
+     React remonte el elemento cuando cambie (reiniciando la animación).
+
+
+6) Construcción de clases CSS para el valor
+
+   let clasesValor = "alim-card-meter-value";
+
+   if (medicionActiva && progresoHabilitado) {
+     if (esDelRele) {
+       clasesValor += " alim-meter-progress-rele";
+     } else if (esDelAnalizador) {
+       clasesValor += " alim-meter-progress-analizador";
+     }
+   }
+
+   - Siempre partimos de la clase base `"alim-card-meter-value"`.
+
+   - Si la medición está activa y el progreso está habilitado:
+
+       • para cajas del relé:
+           - se agrega `"alim-meter-progress-rele"`.
+
+       • para cajas del analizador:
+           - se agrega `"alim-meter-progress-analizador"`.
+
+   - Estas clases extra son las que el CSS usa para dibujar el borde animado,
+     usando las variables `--rw-progress-duration-rele` o
+     `--rw-progress-duration-analizador`.
+
+
+7) Key para reiniciar animación y variable CSS de duración
+
+   const claveValor = `${zona}-${indice}-${equipo}-c${contadorLecturas}`;
+
+   - Esta key se aplica al `<span>` que muestra el valor:
+
+       • incluye:
+           - `zona` (sup/inf),
+           - `indice` dentro del grupo,
+           - `equipo` ("rele"/"analizador"),
+           - `contadorLecturas`.
+
+   - Cuando `contadorLecturas` cambia (ej: llega una nueva lectura):
+
+       • la key cambia,
+       • React desmonta y vuelve a montar el `<span>`,
+       • y la animación CSS se reinicia desde cero.
+
+   const propiedadDuracion = esDelRele
+     ? "--rw-progress-duration-rele"
+     : "--rw-progress-duration-analizador";
+
+   - Esta string representa el nombre de la variable CSS que controla 
+     la duración de la animación:
+
+       • para cajas del relé → `"--rw-progress-duration-rele"`,
+       • para cajas del analizador → `"--rw-progress-duration-analizador"`.
+
+
+8) JSX final
+
+   return (
+     <div key={`${zona}-${indice}`} className="alim-card-meter">
+       <span className="alim-card-meter-phase">{box.etiqueta}</span>
+       <span
+         key={claveValor}
+         className={clasesValor}
+         style={
+           medicionActiva && progresoHabilitado
+             ? { [propiedadDuracion]: `${duracionAnimacion}s` }
+             : undefined
+         }
+       >
+         {box.valor ?? "--,--"}
+       </span>
+     </div>
+   );
+
+   - Contenedor de la caja:
+       • `<div className="alim-card-meter">` agrupa etiqueta y valor.
+       • usa `key={`${zona}-${indice`}` para identificar la caja dentro del
+         grupo de `GrupoMedidores`.
+
+   - Etiqueta:
+       • `<span className="alim-card-meter-phase">{box.etiqueta}</span>`
+       • muestra el texto configurado (ej: R, S, T, “Promedio”, etc.).
+
+   - Valor:
+       • `<span key={claveValor} className={clasesValor} ...>`
+       • `key={claveValor}`:
+           - se apoya en el contador de lecturas para reiniciar animación.
+       • `className={clasesValor}`:
+           - incluye o no las clases de animación según corresponda.
+       • `style={ ... }`:
+           - si la medición está activa y el progreso habilitado, se pasa
+             un objeto con la variable CSS `[propiedadDuracion]` ajustada
+             a `${duracionAnimacion}s`.
+           - si no, `style` queda `undefined` y no se aplica ningún override.
+
+       • `{box.valor ?? "--,--"}`:
+           - muestra `box.valor` si está definido,
+           - si viene `null` o `undefined`, muestra `"--,--"` como placeholder.
+
+
+9) Export
+
+   export default CajaMedicion;
+
+   - Permite usar esta caja desde `TarjetaAlimentador`, que es la que decide
+     cuántas cajas hay, cómo se agrupan y con qué parámetros se renderiza cada una.
+
+---------------------------------------------------------------------------*/
