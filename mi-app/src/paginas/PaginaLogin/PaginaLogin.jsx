@@ -1,13 +1,14 @@
 // src/paginas/PaginaLogin/PaginaLogin.jsx
+
 import React, { useEffect, useState } from "react";      // React y hooks de estado/efectos
 import { Link, useNavigate } from "react-router-dom";    // navegación y links entre rutas
 import "./PaginaLogin.css";                              // estilos específicos de la pantalla de login
 
 const PaginaLogin = () => {
-   // componente de la pantalla de inicio de sesión
+   // estado principal del formulario de inicio de sesión
    const [usuariosValidos, setUsuariosValidos] = useState([]);        // lista de usuarios traídos del json-server
    const [usuario, setUsuario] = useState("");                        // texto ingresado en el campo "usuario"
-   const [contraseña, setContraseña] = useState("");                  // texto ingresado en el campo "contraseña"
+   const [contrasena, setContrasena] = useState("");                  // texto ingresado en el campo "contraseña"
    const [recordarme, setRecordarme] = useState(false);               // flag del checkbox "Recordarme"
    const [error, setError] = useState("");                            // mensaje de error general (fallos al cargar usuarios)
    const [alerta, setAlerta] = useState({ mensaje: "", tipo: "" });   // alerta visual para feedback de login
@@ -19,17 +20,20 @@ const PaginaLogin = () => {
    //    guardado en localStorage con recordarme=true
    // ----------------------------------------------------------------
    useEffect(() => {
-      const stored = localStorage.getItem("usuarioLogueado");     // intento leer el último usuario logueado
+      const stored = localStorage.getItem("usuarioLogueado");         // intento leer el último usuario logueado
 
-      if (stored) {
-         const parsed = JSON.parse(stored);                       // parseo JSON guardado
+      if (!stored) return;
+
+      try {
+         const parsed = JSON.parse(stored);                           // parseo JSON guardado
 
          if (parsed.recordarme) {
-            // solo si el usuario eligió "recordarme"
-            setUsuario(parsed.usuario || "");                     // precargo usuario
-            setContraseña(parsed.contraseña || "");               // precargo contraseña
-            setRecordarme(true);                                  // dejo el checkbox tildado
+            setUsuario(parsed.usuario || "");                         // precargo usuario
+            setContrasena(parsed.contrasena || "");                   // precargo contraseña
+            setRecordarme(true);                                      // dejo el checkbox tildado
          }
+      } catch (e) {
+         console.error("Error al leer usuarioLogueado:", e);
       }
    }, []);
 
@@ -40,18 +44,19 @@ const PaginaLogin = () => {
    useEffect(() => {
       if (usuario.trim() === "") {
          // si borran el usuario en el input
-         setContraseña("");                                       // limpio también la contraseña
+         setContrasena("");                                           // limpio también la contraseña
          return;
       }
 
       const lista = JSON.parse(
          localStorage.getItem("usuariosRecordados") || "[]"
-      ); // leo la lista de recordados
-      const encontrado = lista.find((u) => u.usuario === usuario); // busco por nombre de usuario
+      );                                                              // leo la lista de recordados (o [] si no existe)
+
+      const encontrado = lista.find((u) => u.usuario === usuario);    // busco por nombre de usuario
 
       if (encontrado) {
-         setContraseña(encontrado.contraseña);                     // autocompleto la contraseña
-         setRecordarme(true);                                      // marco automáticamente el checkbox
+         setContrasena(encontrado.contrasena);                        // autocompleto la contraseña
+         setRecordarme(true);                                         // marco automáticamente el checkbox
       }
    }, [usuario]);
 
@@ -60,26 +65,25 @@ const PaginaLogin = () => {
    //    en http://localhost:4000/users
    // ----------------------------------------------------------------
    useEffect(() => {
-      fetch("http://localhost:4000/users")                         // petición GET al json-server
+      fetch("http://localhost:4000/users")                            // petición GET al json-server
          .then((response) => {
             if (!response.ok) throw new Error("Error al cargar usuarios");
-            return response.json();                                // convierto la respuesta a JSON
+            return response.json();                                   // convierto la respuesta a JSON
          })
-         .then((data) => setUsuariosValidos(data))                 // guardo todos los usuarios en estado
+         .then((data) => setUsuariosValidos(data))                    // guardo todos los usuarios en estado
          .catch((err) => {
             console.error(err);
-            setError("No se pudieron cargar los usuarios.");       // muestro error si falla la carga
+            setError("No se pudieron cargar los usuarios.");          // muestro error si falla la carga
          });
-   }, []);                                                         // solo una vez al montar el componente
+   }, []);                                                            // solo una vez al montar el componente
 
    // ----------------------------------------------------------------
    // 4) Helper para mostrar una alerta temporal en pantalla
    // ----------------------------------------------------------------
    const mostrarAlerta = (mensaje, tipo = "error") => {
-      setAlerta({ mensaje, tipo });                                // seteo el texto y tipo de alerta
+      setAlerta({ mensaje, tipo });                                   // seteo el texto y tipo de alerta
       setTimeout(() => {
-         // luego de 4 segundos la borro sola
-         setAlerta({ mensaje: "", tipo: "" });
+         setAlerta({ mensaje: "", tipo: "" });                        // luego de 4 segundos la borro sola
       }, 4000);
    };
 
@@ -87,10 +91,10 @@ const PaginaLogin = () => {
    // 5) Manejo del submit del formulario de login
    // ----------------------------------------------------------------
    const handleSubmit = (event) => {
-      event.preventDefault();                                      // evito recarga completa de la página
-      setError("");                                                // limpio errores previos de carga
+      event.preventDefault();                                         // evito recarga completa de la página
+      setError("");                                                   // limpio errores previos de carga
 
-      const usuarioLimpio = usuario.trim().toLowerCase();          // normalizo el nombre de usuario
+      const usuarioLimpio = usuario.trim().toLowerCase();             // normalizo el nombre de usuario
 
       // Buscar al usuario en la lista por el campo "Usuario" (del JSON)
       const usuarioEncontrado = usuariosValidos.find(
@@ -98,13 +102,13 @@ const PaginaLogin = () => {
       );
 
       if (!usuarioEncontrado) {
-         mostrarAlerta("El usuario no existe", "error");           // feedback si el usuario no está registrado
+         mostrarAlerta("El usuario no existe", "error");              // feedback si el usuario no está registrado
          return;
       }
 
       // Comparar contraseña (la key del JSON usa "Contraseña")
-      if (usuarioEncontrado["Contraseña"] !== contraseña) {
-         mostrarAlerta("Contraseña incorrecta", "error");         // feedback si la contraseña no coincide
+      if (usuarioEncontrado["Contraseña"] !== contrasena) {
+         mostrarAlerta("Contraseña incorrecta", "error");             // feedback si la contraseña no coincide
          return;
       }
 
@@ -116,21 +120,21 @@ const PaginaLogin = () => {
       if (recordarme) {
          let listaRecordados = JSON.parse(
             localStorage.getItem("usuariosRecordados") || "[]"
-         ); // leo lista previa
+         );                                                           // leo lista previa
 
          listaRecordados = listaRecordados.filter(
             (u) => u.usuario !== usuarioEncontrado.Usuario
-         ); // evito duplicados
+         );                                                           // evito duplicados
 
          listaRecordados.push({
             usuario: usuarioEncontrado.Usuario,
-            contraseña: contraseña, // guardo contraseña en texto plano (solo para este TP)
+            contrasena: contrasena,                                   // guardo contraseña en texto plano (solo para este TP)
          });
 
          localStorage.setItem(
             "usuariosRecordados",
             JSON.stringify(listaRecordados)
-         ); // guardo lista actualizada
+         );                                                           // guardo lista actualizada
       } else {
          // Si no se marca "Recordarme", quito al usuario de usuariosRecordados
          let listaRecordados = JSON.parse(
@@ -149,11 +153,10 @@ const PaginaLogin = () => {
       // 5.2) Navegar a la pantalla de alimentadores después de un breve delay
       // ----------------------------------------------------------------
       setTimeout(() => {
-         navigate("/alimentadores");      // redirige al panel principal
+         navigate("/alimentadores");                                  // redirige al panel principal
       }, 1200);
    };
 
-	
    // ----------------------------------------------------------------
    // 6) Render del formulario de login
    // ----------------------------------------------------------------
@@ -170,7 +173,6 @@ const PaginaLogin = () => {
 
             <div className="derecha">
                <div className="login">
-
                   <h3 className="usuario">USUARIO</h3>
 
                   <input
@@ -184,15 +186,16 @@ const PaginaLogin = () => {
                   />
 
                   <datalist id="lista-usuarios-recordados">
-							{/* Busca en el localStorage del navegador un ítem con la clave "usuariosRecordados"
-							Si getItem(...) devolvió algo “falso” (por ejemplo null), se usa "[]" como valor por defecto.*/}
-							{JSON.parse(localStorage.getItem("usuariosRecordados") || "[]")
-								.map((u) => (
-                        <option key={u.usuario} value={u.usuario} />        // cada opción es un usuario recordado
-                     ))}
+                     {JSON.parse(
+                        localStorage.getItem("usuariosRecordados") || "[]"
+                     ) // lee lista guardada de usuarios recordados (o [] si no existe)
+                        .map((u) => (
+                           <option
+                              key={u.usuario}
+                              value={u.usuario}
+                           />                                              // cada opción es un usuario recordado
+                        ))}
                   </datalist>
-						{/* ☝️ Buscá en el almacenamiento del navegador la lista de usuarios recordados; si no hay nada, usá una lista vacía. 
-						Después convertí ese texto JSON en un array de JavaScript para poder recorrerlo y generar las opciones del datalist.*/}
 
                   <h3 className="usuario">CONTRASEÑA</h3>
 
@@ -200,8 +203,8 @@ const PaginaLogin = () => {
                      className="input"
                      type="password"
                      placeholder="Ingrese su contraseña"
-                     value={contraseña}
-                     onChange={(e) => setContraseña(e.target.value)}        // actualiza el estado de contraseña
+                     value={contrasena}
+                     onChange={(e) => setContrasena(e.target.value)}        // actualiza el estado de contraseña
                   />
 
                   <label className="recordarme">
@@ -209,42 +212,33 @@ const PaginaLogin = () => {
                         type="checkbox"
                         checked={recordarme}
                         onChange={(event) =>
-                           setRecordarme(event.target.checked)}              // alterna el flag de "Recordarme"
+                           setRecordarme(event.target.checked)}             // alterna el flag de "Recordarme"
                      />{" "}
                      Recordarme
                   </label>
 
-                  {error && <p className="error">{error}</p>}{" "}     {/*error && <p>...</p> → renderizado condicional: solo muestra el <p> si error tiene algo.*/}
-
-                  {/* error de carga de usuarios */}
+                  {error && (
+                     <p className="error">{error}</p>                        // mensaje de error al cargar usuarios
+                  )}
 
                   <div className="acciones">
-
                      <button type="submit" className="boton">
                         Iniciar sesión
                      </button>
-							{/* ☝️ Muestra el texto “Iniciar sesión”. Al hacer click, como es type="submit" y está dentro del <form>,
-							dispara el handleSubmit del formulario, que es donde validás usuario y contraseña, mostrás alertas, 
-							y navegás a /alimentadores si todo está bien.*/}
 
                      <Link to="/recuperarContraseña" className="recordarme">
-                     ¿Olvidaste tu contraseña?
+                        ¿Olvidaste tu contraseña?
                      </Link>
-                     {/* ☝️ Mostrá un enlace con el texto ‘¿Olvidaste tu contraseña?’ que, al hacer clic, 
-							lleve a la pantalla de recuperar contraseña usando React Router, sin recargar toda la página.*/}
 
                      <Link to="/registro" className="registrarse">
                         ¿No tienes cuenta? registrate
                      </Link>
-							{/* ☝️ Mostrá un enlace con el texto ‘¿No tienes cuenta? registrate’ que, al hacer clic, 
-							lleve a la pantalla de registro /registro usando React Router, sin recargar toda la página.*/}
-
                   </div>
                </div>
             </div>
          </div>
 
-         {alerta.mensaje && (                                     // si hay alerta activa, la muestro flotando
+         {alerta.mensaje && (                                           // si hay alerta activa, la muestro flotando
             <div className={`alerta alerta-${alerta.tipo}`}>
                {alerta.mensaje}
             </div>
@@ -255,17 +249,243 @@ const PaginaLogin = () => {
 
 export default PaginaLogin;      // componente exportado para usarlo en App.jsx
 
-// ---------------------------------------------------------------------------
-// NOTA PERSONAL SOBRE ESTE ARCHIVO (PaginaLogin.jsx)
-// - Pantalla de login con soporte de "recordarme" y autocompletado de usuario
-//   y contraseña usando localStorage.
-// - Al montar, carga la lista de usuarios desde json-server (db.json) y la
-//   guarda en usuariosValidos para validar las credenciales localmente.
-// - También revisa si hay un usuario previo en "usuarioLogueado" y, si marcó
-//   recordarme, completa usuario/contraseña y deja tildado el checkbox.
-// - Al enviar el formulario, busca el usuario en usuariosValidos y compara la
-//   contraseña. Si algo falla, muestra una alerta temporal en pantalla.
-// - Si el login es correcto, actualiza la lista usuariosRecordados (según si
-//   el checkbox está activo) y navega a "/alimentadores" luego de 1,2 segundos.
-// - Toda la parte visual (layout, colores, alertas) se maneja en PaginaLogin.css.
-// ---------------------------------------------------------------------------
+{/*---------------------------------------------------------------------------
+ NOTA SOBRE ESTE ARCHIVO (PaginaLogin.jsx)
+
+ - Pantalla de login con soporte de "recordarme" y autocompletado de usuario
+   y contraseña usando localStorage (`usuarioLogueado` + `usuariosRecordados`).
+
+ - Al montar, carga la lista de usuarios desde json-server (db.json en
+   http://localhost:4000/users) y la guarda en `usuariosValidos` para validar
+   las credenciales localmente sin otra llamada.
+
+ - El primer useEffect revisa si hay un usuario previo en `usuarioLogueado` y,
+   si marcó "recordarme", completa usuario/contraseña y deja tildado el
+   checkbox.
+
+ - El segundo useEffect usa `usuariosRecordados` para autocompletar la
+   contraseña cuando escribo un usuario que ya estuvo guardado antes.
+
+ - `handleSubmit` valida usuario y contraseña, muestra alertas con `mostrarAlerta`,
+   mantiene la lista `usuariosRecordados` según el estado del checkbox y, si
+   todo está ok, navega a `/alimentadores` luego de un breve delay.
+
+ - Toda la parte visual (layout, colores, alertas flotantes) se maneja en
+   `PaginaLogin.css`.
+---------------------------------------------------------------------------*/}
+
+/*---------------------------------------------------------------------------
+CÓDIGO + EXPLICACIÓN DE CADA PARTE (PaginaLogin.jsx)
+
+0) Visión general de la pantalla
+
+   - PaginaLogin.jsx implementa la pantalla de inicio de sesión de la app.
+
+   - Soporta:
+       • validación contra un json-server (http://localhost:4000/users),
+       • casilla "Recordarme" con almacenamiento en localStorage,
+       • autocompletado de usuario y contraseña para usuarios recordados,
+       • navegación automática al panel de alimentadores tras un login exitoso.
+
+   - Toda la parte visual (layout, colores, alertas flotantes) se define en
+     PaginaLogin.css; este archivo se centra en la lógica y el manejo de estado.
+
+
+1) Estado principal del componente
+
+   const [usuariosValidos, setUsuariosValidos] = useState([]);
+   const [usuario, setUsuario] = useState("");
+   const [contrasena, setContrasena] = useState("");
+   const [recordarme, setRecordarme] = useState(false);
+   const [error, setError] = useState("");
+   const [alerta, setAlerta] = useState({ mensaje: "", tipo: "" });
+
+   - usuariosValidos:
+       • contiene la lista de usuarios leída desde json-server (db.json).
+       • se usa para validar el nombre de usuario y la contraseña.
+
+   - usuario / contrasena:
+       • representan lo que se escribe en los inputs del formulario.
+
+   - recordarme:
+       • indica si el usuario quiere que se recuerden sus credenciales
+         para futuros inicios de sesión en este mismo equipo.
+
+   - error:
+       • guarda errores generales de carga (por ejemplo, si falla el fetch
+         de usuarios desde el servidor).
+
+   - alerta:
+       • { mensaje, tipo } se usa para mostrar un cartel flotante temporal
+         (por ejemplo, "El usuario no existe", "Contraseña incorrecta",
+         "Bienvenido, ...").
+
+
+2) useEffect #1 – usuarioLogueado inicial
+
+   useEffect(() => {
+     const stored = localStorage.getItem("usuarioLogueado");
+     ...
+   }, []);
+
+   - Se ejecuta una sola vez al montar el componente.
+   - Busca en localStorage un objeto JSON bajo la clave "usuarioLogueado".
+   - Si existe y tiene recordarme === true:
+       • precarga campo usuario,
+       • precarga campo contrasena,
+       • marca el checkbox "Recordarme".
+   - Esto permite que, tras un login anterior donde se marcó "Recordarme",
+     el formulario aparezca ya completo la próxima vez que se abre la app.
+
+
+3) useEffect #2 – autocompletar desde usuariosRecordados
+
+   useEffect(() => {
+     if (usuario.trim() === "") { ... }
+     const lista = JSON.parse(localStorage.getItem("usuariosRecordados") || "[]");
+     const encontrado = lista.find((u) => u.usuario === usuario);
+     ...
+   }, [usuario]);
+
+   - Se ejecuta cada vez que cambia el campo usuario.
+   - Si el input queda vacío, también se limpia la contraseña.
+   - Si hay texto, se busca ese usuario en la lista "usuariosRecordados"
+     almacenada en localStorage (es un array con objetos { usuario, contrasena }).
+   - Si se encuentra:
+       • autocompleta el campo contrasena,
+       • marca el checkbox "Recordarme".
+   - Este mecanismo permite que, escribiendo sólo el usuario (o eligiéndolo
+     desde el datalist), se rellene automáticamente la contraseña asociada.
+
+
+4) useEffect #3 – carga de usuarios desde json-server
+
+   useEffect(() => {
+     fetch("http://localhost:4000/users")
+       .then(...)
+       .catch(...);
+   }, []);
+
+   - Hace una petición GET a json-server para obtener la lista de usuarios.
+
+   - Espera que la respuesta sea un JSON (array de objetos) con campos como:
+       • Usuario
+       • Contraseña
+       • Nombre
+       (y otros que se definan en db.json).
+
+   - Si la carga es exitosa:
+       • guarda el array completo en usuariosValidos.
+
+   - Si falla:
+       • escribe el error en consola,
+       • setea error con un mensaje genérico que luego se muestra
+         debajo del formulario.
+
+
+5) mostrarAlerta(mensaje, tipo)
+
+   const mostrarAlerta = (mensaje, tipo = "error") => {
+     setAlerta({ mensaje, tipo });
+     setTimeout(() => setAlerta({ mensaje: "", tipo: "" }), 4000);
+   };
+
+   - Centraliza la lógica para mostrar mensajes temporales:
+       • "El usuario no existe"
+       • "Contraseña incorrecta"
+       • "Bienvenido, ...", etc.
+   - tipo se utiliza para asignar una clase CSS distinta (alerta-error,
+     alerta-exito, etc.).
+   - Luego de 4 segundos, la alerta se limpia sola, dejando de mostrarse.
+
+
+6) handleSubmit – flujo principal de login
+
+   const handleSubmit = (event) => {
+     event.preventDefault();
+     ...
+   };
+
+   6.1) Validación de usuario y contraseña
+
+   - Normaliza el usuario a minúsculas (usuarioLimpio).
+   - Busca en usuariosValidos un registro cuyo campo Usuario coincida
+     (case-insensitive).
+   - Si no lo encuentra:
+       • muestra alerta "El usuario no existe".
+   - Si lo encuentra, compara la contraseña ingresada con el campo
+     "Contraseña" del JSON:
+       • si no coinciden, alerta "Contraseña incorrecta";
+       • si coinciden, alerta de bienvenida y continúa el flujo.
+
+   6.2) Gestión de la lista usuariosRecordados
+
+   - Si recordarme === true:
+       • lee la lista existente de usuariosRecordados desde localStorage
+         (o [] si no existe),
+       • elimina cualquier entrada previa para ese mismo usuario,
+       • agrega un nuevo objeto { usuario, contrasena },
+       • vuelve a guardar la lista completa en localStorage.
+
+   - Si recordarme === false:
+       • lee la misma lista,
+       • elimina al usuario actual de esa lista,
+       • guarda el resultado.
+
+   - De esta forma, usuariosRecordados mantiene sólo aquellos usuarios que
+     pidieron ser recordados, junto con su contraseña (en texto plano en
+     este trabajo práctico, sabiendo que en producción se debería cifrar).
+
+   6.3) Navegación hacia /alimentadores
+
+   - Tras un pequeño delay (1200 ms), llama a navigate("/alimentadores").
+	
+   - Esto permite que la alerta de bienvenida sea visible un instante
+     antes de redirigir al usuario al panel principal de la app.
+
+
+7) Render del formulario y estructura visual
+
+   return (
+     <form onSubmit={handleSubmit} className="login-form">
+       <div className="container">
+         <div className="izquierda">...</div>
+         <div className="derecha">...</div>
+       </div>
+       {alerta.mensaje && <div className={`alerta alerta-${alerta.tipo}`}>...</div>}
+     </form>
+   );
+
+   - Estructura general:
+       • container con dos columnas:
+           - izquierda: logo de la aplicación,
+           - derecha: formulario de login.
+
+   - Inputs principales:
+       • Usuario:
+           - type="text", autoComplete="username".
+           - usa list="lista-usuarios-recordados" para ofrecer opciones
+             de usuarios previamente recordados (datalist).
+       • Contraseña:
+           - type="password", ligada a contrasena.
+
+   - Datalist "lista-usuarios-recordados":
+       • se arma dinámicamente leyendo usuariosRecordados desde localStorage.
+       • cada <option> tiene value = nombre de usuario recordado.
+
+   - Checkbox "Recordarme":
+       • ligado a recordarme.
+       • controla si el usuario se agrega o quita de usuariosRecordados
+         al hacer login correcto.
+
+   - Sección "acciones":
+       • botón de "Iniciar sesión" (submit del formulario),
+       • link a recuperación de contraseña,
+       • link a pantalla de registro.
+
+   - Alerta flotante:
+       • si alerta.mensaje tiene contenido, se renderiza un div con clases
+         alerta y alerta-{tipo}, posicionado según el CSS, para mostrar
+         errores o mensajes de éxito de forma destacada sobre la pantalla.
+
+---------------------------------------------------------------------------*/

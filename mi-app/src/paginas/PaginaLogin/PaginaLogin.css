@@ -1,12 +1,16 @@
 /* src/paginas/PaginaLogin/PaginaLogin.css */
 /*
-   NOTA PERSONAL SOBRE ESTE ARCHIVO CSS:
+   NOTA SOBRE ESTE ARCHIVO CSS:
    - Define el diseño visual de la pantalla de login: fondo negro general,
      panel celeste a la derecha y logo centrado en la columna izquierda.
+
    - Registra la fuente "Baloo Bhai 2" y la usa como tipografía principal.
+
    - `.container`, `.izquierda` y `.derecha` arman el layout de dos columnas.
+
    - El bloque @media (max-width: 768px) adapta el login a móvil: el logo pasa
      arriba y el panel celeste ocupa toda la pantalla.
+	  
    - Las clases `.alerta`, `.alerta-error` y `.alerta-exito` estilizan el
      mensaje flotante de feedback que se dispara desde PaginaLogin.jsx.
 */
