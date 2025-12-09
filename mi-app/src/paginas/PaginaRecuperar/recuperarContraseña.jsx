@@ -1,8 +1,8 @@
 // src/paginas/PaginaRecuperar/recuperarContraseña.jsx
 
 import { useState } from "react";                  // hook para manejar estado local (email y alertas)
-import { Link, useNavigate } from "react-router-dom"; // navegación: volver a /login u otras rutas
-import "./RecuperarContraseña.css";               // estilos específicos de la pantalla de recuperación
+import { useNavigate } from "react-router-dom";    // navegación: volver a /login u otras rutas
+import "./RecuperarContraseña.css";                // estilos específicos de la pantalla de recuperación
 
 const RecuperarContrasena = () => {
    const [email, setEmail] = useState("");         // email que escribe el usuario
