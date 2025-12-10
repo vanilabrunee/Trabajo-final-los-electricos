@@ -5,6 +5,21 @@ import React, { useEffect, useState } from "react";      // React y hooks de est
 import { Link, useNavigate } from "react-router-dom";    // navegación y links entre rutas
 import "./PaginaLogin.css";                              // estilos específicos de la pantalla de login
 
+// Icono ojo abierto
+const EyeIcon = () => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+      </svg>
+);
+
+// Icono ojo tachado
+const EyeOffIcon = () => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19M1 1l22 22"/>
+      </svg>
+);
+
 const PaginaLogin = () => {
    // estado principal del formulario de inicio de sesión
    const [usuariosValidos, setUsuariosValidos] = useState([]);        // lista de usuarios traídos del json-server
@@ -13,6 +28,7 @@ const PaginaLogin = () => {
    const [recordarme, setRecordarme] = useState(false);               // flag del checkbox "Recordarme"
    const [error, setError] = useState("");                            // mensaje de error general (fallos al cargar usuarios)
    const [alerta, setAlerta] = useState({ mensaje: "", tipo: "" });   // alerta visual para feedback de login
+   const [mostrar, setMostrar] = useState(false);
 
    const navigate = useNavigate();                                    // hook para navegar programáticamente
 
@@ -177,14 +193,19 @@ const PaginaLogin = () => {
                   </datalist>
 
                   <h3 className="usuario">CONTRASEÑA</h3>
-
-                  <input
+                  <div className="input-contraseña">
+                        <input
                      className="input"
-                     type="password"
+                     type={mostrar ? "text" : "password"}
                      placeholder="Ingrese su contraseña"
                      value={contrasena}
                      onChange={(e) => setContrasena(e.target.value)}        // actualiza el estado de contraseña
                   />
+                  <span onClick={() => setMostrar(!mostrar)} className='ojito'>
+                     {mostrar ? <EyeIcon /> : <EyeOffIcon />}
+                  </span>
+                  </div>
+                  
 
                   <label className="recordarme">
                      <input

@@ -130,6 +130,20 @@ body {
 	
 }
 
+.input-contraseña{
+	position:relative;
+}
+
+.ojito{
+    position: absolute;
+    right: 12px;
+    top: 18px;
+    transform: "translateY(-50%)";
+    cursor: "pointer";
+    font-size: 22px;
+    color: #5e5f5f;
+}
+
 label.recordarme {
 	font-size: 18px;
 	margin-top: 6px;
