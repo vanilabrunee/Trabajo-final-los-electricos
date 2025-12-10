@@ -43,8 +43,9 @@ export default App;                                          // se importa en ma
 // NOTA PERSONAL SOBRE ESTE ARCHIVO (App.jsx)
 // - Este componente define el enrutado de alto nivel de la aplicación.
 // - Usa <Routes> y <Route> de react-router-dom para asociar paths a componentes.
-// - "/" carga PaginaLogin, "/registro" carga PaginaRegistro y "/alimentadores"
-//   muestra el panel principal donde se manejan puestos y alimentadores.
+// - "/" carga PaginaLogin, "/registro" carga PaginaRegistro "/recuperarContraseña"
+//   carga RecuperarContraseña y "/alimentadores" muestra el panel principal 
+//   donde se manejan puestos y alimentadores.
 // - La última ruta con path="*" actúa como catch-all: cualquier URL desconocida
 //   navega automáticamente a "/", evitando pantallas en blanco o errores.
 // - En resumen: App.jsx es el “switch” de rutas que decide qué pantalla ver en
