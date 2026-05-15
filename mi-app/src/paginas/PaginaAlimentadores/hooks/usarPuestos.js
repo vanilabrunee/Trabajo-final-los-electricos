@@ -1,9 +1,9 @@
 // src/paginas/PaginaAlimentadores/hooks/usarPuestos.js
 
-import { useState, useEffect } from "react";                         
-import { CLAVES_STORAGE } from "../constantes/clavesAlmacenamiento";             // claves centralizadas para localStorage
-import { guardarEnStorage, leerDeStorage,} from "../utilidades/almacenamiento";  // helpers seguros para leer/escribir en localStorage
-import { COLORES_SISTEMA } from "../constantes/colores";                         // paleta de colores disponible para puestos
+import { useState, useEffect } from "react";
+import { CLAVES_STORAGE } from "../constantes/clavesAlmacenamiento"; // claves centralizadas para localStorage
+import { guardarEnStorage, leerDeStorage } from "../utilidades/almacenamiento"; // helpers seguros para leer/escribir en localStorage
+import { COLORES_SISTEMA } from "../constantes/colores"; // paleta de colores disponible para puestos
 
 /**
  * Hook personalizado para manejar puestos.
@@ -13,206 +13,222 @@ import { COLORES_SISTEMA } from "../constantes/colores";                        
  */
 
 export const usarPuestos = () => {
+   const COLOR_FONDO_POR_DEFECTO = "#e5e7eb";
 
-  const COLOR_FONDO_POR_DEFECTO = "#e5e7eb";
+   // Estado: ID del puesto actualmente seleccionado
+   const [puestoSeleccionadoId, setPuestoSeleccionadoId] = useState(() => {
+      const idGuardado = leerDeStorage(CLAVES_STORAGE.PUESTO_SELECCIONADO); // último id seleccionado guardado
+      return idGuardado ? Number(idGuardado) : null;
+   });
 
-    /**
-   * Agrega un nuevo puesto a la lista.
-   *
-   * @param {string} nombrePuesto - Nombre del puesto.
-   * @param {string} colorPuesto - Color hex del puesto.
-   */
+   /**
+    * Agrega un nuevo puesto a la lista.
+    *
+    * @param {string} nombrePuesto - Nombre del puesto.
+    * @param {string} colorPuesto - Color hex del puesto.
+    */
 
-  const agregarPuesto = (nombrePuesto, colorPuesto) => {
-    const nuevoPuesto = {
-      id: Date.now(),                                      // id simple basado en timestamp
-      nombre: nombrePuesto.trim(),
-      color: colorPuesto || COLORES_SISTEMA[0],
-      bgColor: COLOR_FONDO_POR_DEFECTO,
-      alimentadores: [],
-    };
+   const agregarPuesto = (nombrePuesto, colorPuesto) => {
+      const nuevoPuesto = {
+         id: Date.now(), // id simple basado en timestamp
+         nombre: nombrePuesto.trim(),
+         color: colorPuesto || COLORES_SISTEMA[0],
+         bgColor: COLOR_FONDO_POR_DEFECTO,
+         alimentadores: [],
+      };
 
-    setPuestos((anteriores) => [...anteriores, nuevoPuesto]);
+      setPuestos((anteriores) => [...anteriores, nuevoPuesto]);
 
-    setPuestoSeleccionadoId(nuevoPuesto.id);               // selecciona el puesto recién creado
-  };
+      setPuestoSeleccionadoId(nuevoPuesto.id); // selecciona el puesto recién creado
+   };
 
-  // Estado: lista de todos los puestos
-  // arranca leyendo desde localStorage (o [] si no hay nada)
-  const [puestos, setPuestos] = useState(() => {
-    return leerDeStorage(CLAVES_STORAGE.PUESTOS, []);         
-  });
+   // Estado: lista de todos los puestos
+   // arranca leyendo desde localStorage (o [] si no hay nada)
+   const [puestos, setPuestos] = useState(() => {
+      return leerDeStorage(CLAVES_STORAGE.PUESTOS, []);
+   });
 
-  // Estado: ID del puesto actualmente seleccionado
-  const [puestoSeleccionadoId, setPuestoSeleccionadoId] = useState(() => {
-    const idGuardado = leerDeStorage(CLAVES_STORAGE.PUESTO_SELECCIONADO);        // último id seleccionado guardado
-    return idGuardado ? Number(idGuardado) : null;
-  });
+   // Derivado: objeto completo del puesto seleccionado
+   const puestoSeleccionado =
+      puestos.find((p) => p.id === puestoSeleccionadoId) ||
+      puestos[0] || // si no hay id válido, toma el primero
+      null;
 
-  // Derivado: objeto completo del puesto seleccionado
-  const puestoSeleccionado =
-    puestos.find((p) => p.id === puestoSeleccionadoId) ||
-    puestos[0] ||                                                                 // si no hay id válido, toma el primero
-    null;
+   // Efecto: guardar puestos en localStorage cuando cambien
+   useEffect(() => {
+      guardarEnStorage(CLAVES_STORAGE.PUESTOS, puestos);
+   }, [puestos]);
 
-  // Efecto: guardar puestos en localStorage cuando cambien
-  useEffect(() => {
-    guardarEnStorage(CLAVES_STORAGE.PUESTOS, puestos);
-  }, [puestos]);
+   // Efecto: guardar selección en localStorage cuando cambie
+   useEffect(() => {
+      if (puestoSeleccionadoId != null) {
+         guardarEnStorage(
+            CLAVES_STORAGE.PUESTO_SELECCIONADO,
+            puestoSeleccionadoId
+         );
+      } else {
+         localStorage.removeItem(CLAVES_STORAGE.PUESTO_SELECCIONADO);
+      }
+   }, [puestoSeleccionadoId]);
 
+   // Efecto: auto‑seleccionar primer puesto si no hay selección válida
+   useEffect(() => {
+      if (!puestos.length) return; // si no hay puestos, no hay nada que seleccionar
 
-  // Efecto: guardar selección en localStorage cuando cambie
-  useEffect(() => {
+      const seleccionValida = puestos.some(
+         (p) => p.id === puestoSeleccionadoId
+      );
 
-    if (puestoSeleccionadoId != null) {
-		      guardarEnStorage(CLAVES_STORAGE.PUESTO_SELECCIONADO, puestoSeleccionadoId);
-    } else {
-      localStorage.removeItem(CLAVES_STORAGE.PUESTO_SELECCIONADO);
-    }
+      if (puestoSeleccionadoId == null || !seleccionValida) {
+         setPuestoSeleccionadoId(puestos[0].id); // corrige la selección al primer puesto disponible
+      }
+   }, [puestos, puestoSeleccionadoId]);
 
-  }, [puestoSeleccionadoId]);
+   /**
+    * Actualiza la lista completa de puestos.
+    * Útil para edición masiva desde el modal de edición.
+    *
+    * @param {Array} nuevaListaPuestos - Nueva lista de puestos.
+    */
 
+   const actualizarPuestos = (nuevaListaPuestos) => {
+      const sinVacios = nuevaListaPuestos.filter((p) => p.nombre.trim() !== ""); // descarta puestos sin nombre
 
-  // Efecto: auto‑seleccionar primer puesto si no hay selección válida
-  useEffect(() => {
-    if (!puestos.length) return;                           // si no hay puestos, no hay nada que seleccionar
+      setPuestos(sinVacios);
 
-    const seleccionValida = puestos.some((p) => p.id === puestoSeleccionadoId);
+      // Si el seleccionado se eliminó, seleccionar el primero disponible
+      const seleccionExiste = sinVacios.some(
+         (p) => p.id === puestoSeleccionadoId
+      );
 
-    if (puestoSeleccionadoId == null || !seleccionValida) {
-      setPuestoSeleccionadoId(puestos[0].id);              // corrige la selección al primer puesto disponible
-    }
-  }, [puestos, puestoSeleccionadoId]);
+      if (!seleccionExiste) {
+         setPuestoSeleccionadoId(sinVacios[0]?.id || null);
+      }
+   };
 
+   /**
+    * Elimina un puesto por su ID.
+    *
+    * @param {number} idPuesto - ID del puesto a eliminar.
+    */
+   const eliminarPuesto = (idPuesto) => {
+      setPuestos((anteriores) => anteriores.filter((p) => p.id !== idPuesto));
+   };
 
-  
+   /**
+    * Selecciona un puesto como activo.
+    *
+    * @param {number} idPuesto - ID del puesto a seleccionar.
+    */
+   const seleccionarPuesto = (idPuesto) => {
+      setPuestoSeleccionadoId(idPuesto);
+   };
 
-  /**
-   * Actualiza la lista completa de puestos.
-   * Útil para edición masiva desde el modal de edición.
-   *
-   * @param {Array} nuevaListaPuestos - Nueva lista de puestos.
-   */
-  
-  const actualizarPuestos = (nuevaListaPuestos) => {
-    const sinVacios = nuevaListaPuestos.filter((p) => p.nombre.trim() !== "");  // descarta puestos sin nombre
+   /**
+    * Agrega un alimentador al puesto seleccionado.
+    *
+    * @param {Object} datosAlimentador - Datos del nuevo alimentador.
+    */
+   const agregarAlimentador = (datosAlimentador) => {
+      if (!puestoSeleccionado) return;
 
-    setPuestos(sinVacios);
+      const nuevoAlimentador = {
+         id: Date.now(),
+         ...datosAlimentador,
+      };
 
-    // Si el seleccionado se eliminó, seleccionar el primero disponible
-    const seleccionExiste = sinVacios.some((p) => p.id === puestoSeleccionadoId);
+      setPuestos((anteriores) =>
+         anteriores.map((p) =>
+            p.id === puestoSeleccionado.id
+               ? { ...p, alimentadores: [...p.alimentadores, nuevoAlimentador] }
+               : p
+         )
+      );
+   };
 
-    if (!seleccionExiste) {
-      setPuestoSeleccionadoId(sinVacios[0]?.id || null);
-    }
+   /**
+    * Actualiza un alimentador existente.
+    *
+    * @param {number} idPuesto - ID del puesto que contiene el alimentador.
+    * @param {number} idAlimentador - ID del alimentador a actualizar.
+    * @param {Object} nuevosDatos - Nuevos datos del alimentador.
+    */
+   const actualizarAlimentador = (idPuesto, idAlimentador, nuevosDatos) => {
+      setPuestos((anteriores) =>
+         anteriores.map((p) =>
+            p.id === idPuesto
+               ? {
+                    ...p,
+                    alimentadores: p.alimentadores.map((a) =>
+                       a.id === idAlimentador ? { ...a, ...nuevosDatos } : a
+                    ),
+                 }
+               : p
+         )
+      );
+   };
 
-  };
+   /**
+    * Elimina un alimentador.
+    *
+    * @param {number} idPuesto - ID del puesto.
+    * @param {number} idAlimentador - ID del alimentador a eliminar.
+    */
+   const eliminarAlimentador = (idPuesto, idAlimentador) => {
+      setPuestos((anteriores) =>
+         anteriores.map((p) =>
+            p.id === idPuesto
+               ? {
+                    ...p,
+                    alimentadores: p.alimentadores.filter(
+                       (a) => a.id !== idAlimentador
+                    ),
+                 }
+               : p
+         )
+      );
+   };
 
+   /**
+    * Reordena los alimentadores de un puesto.
+    *
+    * @param {number} idPuesto - ID del puesto.
+    * @param {Array} nuevoOrdenAlimentadores - Nueva lista ordenada.
+    */
+   const reordenarAlimentadores = (idPuesto, nuevoOrdenAlimentadores) => {
+      setPuestos((anteriores) =>
+         anteriores.map((p) =>
+            p.id === idPuesto
+               ? { ...p, alimentadores: nuevoOrdenAlimentadores }
+               : p
+         )
+      );
+   };
 
-  /**
-   * Elimina un puesto por su ID.
-   *
-   * @param {number} idPuesto - ID del puesto a eliminar.
-   */
-  const eliminarPuesto = (idPuesto) => {
-    setPuestos((anteriores) =>
-      anteriores.filter((p) => p.id !== idPuesto)
-    );
-  };
+   // Devolver estado y funciones
+   return {
+      // Estados
+      puestos,
+      puestoSeleccionado,
+      puestoSeleccionadoId,
 
-  /**
-   * Selecciona un puesto como activo.
-   *
-   * @param {number} idPuesto - ID del puesto a seleccionar.
-   */
-  const seleccionarPuesto = (idPuesto) => {
-    setPuestoSeleccionadoId(idPuesto);
-  };
+      // Funciones de puestos
+      agregarPuesto,
+      eliminarPuesto,
+      seleccionarPuesto,
+      actualizarPuestos,
+      setPuestos,
 
-  /**
-   * Agrega un alimentador al puesto seleccionado.
-   *
-   * @param {Object} datosAlimentador - Datos del nuevo alimentador.
-   */
-  const agregarAlimentador = (datosAlimentador) => {
-    if (!puestoSeleccionado) return;
-
-    const nuevoAlimentador = {
-      id: Date.now(),
-      ...datosAlimentador,
-    };
-
-    setPuestos((anteriores) =>
-      anteriores.map((p) =>
-        p.id === puestoSeleccionado.id ? { ...p, alimentadores: [...p.alimentadores, nuevoAlimentador], } : p)
-    );
-  };
-
-  /**
-   * Actualiza un alimentador existente.
-   *
-   * @param {number} idPuesto - ID del puesto que contiene el alimentador.
-   * @param {number} idAlimentador - ID del alimentador a actualizar.
-   * @param {Object} nuevosDatos - Nuevos datos del alimentador.
-   */
-  const actualizarAlimentador = (idPuesto, idAlimentador, nuevosDatos) => {
-    setPuestos((anteriores) =>
-      anteriores.map((p) =>
-        p.id === idPuesto ? { ...p, alimentadores: p.alimentadores.map((a) => a.id === idAlimentador ? { ...a, ...nuevosDatos } : a), } : p)
-    );
-  };
-
-
-  /**
-   * Elimina un alimentador.
-   *
-   * @param {number} idPuesto - ID del puesto.
-   * @param {number} idAlimentador - ID del alimentador a eliminar.
-   */
-  const eliminarAlimentador = (idPuesto, idAlimentador) => {
-    setPuestos((anteriores) =>
-      anteriores.map((p) =>
-        p.id === idPuesto ? { ...p, alimentadores: p.alimentadores.filter((a) => a.id !== idAlimentador), } : p)
-    );
-  };
-
-
-  /**
-   * Reordena los alimentadores de un puesto.
-   *
-   * @param {number} idPuesto - ID del puesto.
-   * @param {Array} nuevoOrdenAlimentadores - Nueva lista ordenada.
-   */
-  const reordenarAlimentadores = (idPuesto, nuevoOrdenAlimentadores) => {
-    setPuestos((anteriores) =>
-      anteriores.map((p) =>
-        p.id === idPuesto ? { ...p, alimentadores: nuevoOrdenAlimentadores } : p)
-    );
-  };
-
-  // Devolver estado y funciones
-  return {
-    // Estados
-    puestos,
-    puestoSeleccionado,
-    puestoSeleccionadoId,
-
-    // Funciones de puestos
-    agregarPuesto,
-    eliminarPuesto,
-    seleccionarPuesto,
-    actualizarPuestos,
-    setPuestos,
-
-    // Funciones de alimentadores
-    agregarAlimentador,
-    actualizarAlimentador,
-    eliminarAlimentador,
-    reordenarAlimentadores,
-  };
+      // Funciones de alimentadores
+      agregarAlimentador,
+      actualizarAlimentador,
+      eliminarAlimentador,
+      reordenarAlimentadores,
+   };
 };
 
-{/*---------------------------------------------------------------------------
+{
+   /*---------------------------------------------------------------------------
  NOTA SOBRE ESTE ARCHIVO (usarPuestos.js)
 
  - Este hook concentra todo lo relacionado con la "estructura" de la pantalla:
@@ -234,9 +250,11 @@ export const usarPuestos = () => {
    son las que usa el contexto y la vista para modificar la estructura sin tocar
    directamente el estado interno.
 -------------------------------------------------------------------------------
-*/}
+*/
+}
 
-{/*---------------------------------------------------------------------------
+{
+   /*---------------------------------------------------------------------------
  CÓDIGO + EXPLICACIÓN DE CADA FUNCIÓN (usarPuestos.js)
 
  1) agregarPuesto
@@ -435,4 +453,5 @@ export const usarPuestos = () => {
 
    - No calcula el orden; solo guarda el resultado que le pasó la lógica
      de drag & drop.
----------------------------------------------------------------------------*/}
+---------------------------------------------------------------------------*/
+}

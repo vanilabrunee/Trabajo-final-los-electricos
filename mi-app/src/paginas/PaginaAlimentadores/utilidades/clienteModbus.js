@@ -267,4 +267,10 @@ CÓDIGO + EXPLICACIÓN DE CADA PARTE (clienteModbus.js)
      de fuente de datos, basta con ajustar este módulo y mantener el
      mismo formato de retorno.
 
+	  @param {string} vani - junio 2024
+
 ---------------------------------------------------------------------------*/
+
+
+
+

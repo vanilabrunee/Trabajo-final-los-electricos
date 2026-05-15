@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from "react";                                          
+
 import { Routes, Route, Navigate } from "react-router-dom";                // componentes de enrutado declarativo
 import PaginaLogin from "./paginas/PaginaLogin/PaginaLogin.jsx";           // pantalla de login (ruta "/")
 import PaginaRegistro from "./paginas/PaginaRegistro/PaginaRegistro.jsx";  // pantalla de registro (ruta "/registro")
